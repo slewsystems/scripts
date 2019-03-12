@@ -4,17 +4,17 @@
 
 !definelong STD_HEADER
     !ifdef COMPANY_NAME && AUTHOR_NAME
-        header COMPANY_NAME\n AUTHOR_NAME\nRev TODAY
+        COMPANY_NAME\n AUTHOR_NAME\nRev TODAY
     !else
-        header Please define COMPANY_NAME and AUTHOR_NAME
+        Please define COMPANY_NAME and AUTHOR_NAME
     !endif
 !enddefinelong
 
 !definelong STD_FOOTER
     !ifdef COMPANY_NAME
-        footer Confidential - COMPANY_NAME
+        Confidential - COMPANY_NAME
     !else
-        footer Confidential
+        Confidential
     !endif
 !enddefinelong
 
