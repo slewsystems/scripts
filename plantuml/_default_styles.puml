@@ -1,15 +1,21 @@
 @startuml
 !define TODAY %date[yyyy-MM-dd]%
 !define CODE_FONT Menlo
-!define COMPANY_NAME [Company Name]
-!define AUTHOR_NAME [First Last]
 
 !definelong STD_HEADER
-    header COMPANY_NAME\n AUTHOR_NAME\nRev TODAY
+    !ifdef COMPANY_NAME && AUTHOR_NAME
+        header COMPANY_NAME\n AUTHOR_NAME\nRev TODAY
+    !else
+        header Please define COMPANY_NAME and AUTHOR_NAME
+    !endif
 !enddefinelong
 
 !definelong STD_FOOTER
-    footer Confidential - COMPANY_NAME
+    !ifdef COMPANY_NAME
+        footer Confidential - COMPANY_NAME
+    !else
+        footer Confidential
+    !endif
 !enddefinelong
 
 !definelong USE_WORD_WRAP(width = 125)
