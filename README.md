@@ -5,7 +5,7 @@ General purpose scripts to automate common tasks.
     - [`branch-tidy`](#branch-tidysh)
     - [`inplace-pull`](#inplace-pullsh)
 - Plantuml
-    - [`_default_styles](#_default_stylespuml)
+    - [`_default_styles`](#_default_stylespuml)
 
 ## Git
 ### `branch-tidy.sh`
