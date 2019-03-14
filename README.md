@@ -1,19 +1,26 @@
 # Scripts
+
 General purpose scripts to automate common tasks.
 
 - Git
-    - [`branch-tidy`](#branch-tidysh)
-    - [`inplace-pull`](#inplace-pullsh)
+  - [`branch-tidy`](#branch-tidysh)
+  - [`inplace-pull`](#inplace-pullsh)
+  - [`glob-changed-files`](#glob-changed-filessh)
 - Plantuml
-    - [`_default_styles`](#_default_stylespuml)
+  - [`_default_styles`](#_default_stylespuml)
 
 ## Git
+
 ### `branch-tidy.sh`
+
+`branch-tidy.sh [path_to_repo=$(pwd)]`
+
 Find local branches that are merged (or have been squashed into a single merge commit) into master then prompt to delete them or all of them.
 
 This is useful when you are merging PRs from another service (Github, etc) and want to also clean up your local branches that are completed (merged). If you use squash commit merges then this script becomes increasingly helpful as it can check for squashed branches too.
 
 #### Example Output
+
 ```bash
 $ ../branch-tidy.sh
 Running in directory: /Users/brandon/foo_project
@@ -36,16 +43,21 @@ Delete all 4 merged/squashed branches? [y/N]
 ```
 
 #### Invoke Externally (macOS)
+
 Use the `extern-branch-tidy.sh` file. This will run a JSX command to create a new terminal session and execute the shell script then exit the session.
 
 This is useful for tools like [Fork](https://git-fork.com/) wher you can invoke custom scripts but doesn't support user input. Spawing a terminal window is a way to work around that limitation.
 
 ### `inplace-pull.sh`
+
+`inplace-pull.sh [path_to_repo=$(pwd)] [branch to pull=master]`
+
 Pull a branch down without losing your current state. This will stash your current changes and re-apply them after pulling down the target branch (or master if not defined).
 
 This is useful to run when you've been working on your local branch and are now a few commits behind the current master and want to rebase. Run this then rebase your branch to catch it back up.
 
 #### Example Output
+
 ```bash
 $ ../inplace-pull.sh
 No target branch specified. Will use master instead
@@ -55,24 +67,45 @@ Restoring original state of item-progress/aggregate-checks...
 Done!
 ```
 
+### `glob-changed-files.sh`
+
+`glob-changed-files.sh [regex_pattern] [to_commit=HEAD] [from_commit=origin/master]`
+
+List all files in glob format that have changed in between a specific commit and master that match the passed regex pattern. This command takes in 3 potential arguments, the last two being optional.
+
+#### Example Usage
+
+```bash
+$ ../glob-changed-files.sh "\\.(scss|css)"
+{this.css,that.scss}
+```
+
 # Plantuml
+
 ## `_default_styles.puml`
+
 You can include this file into your Plantuml diagrams to opt into some better looking styles and some common diagram components. To start using this today in the easier manner you can append the following to the very top of your diagram (within `@startuml`):
+
 ```
 !includeurl https://raw.githubusercontent.com/slewsystems/scripts/master/plantuml/_default_styles.puml
 ```
 
 ### Styles
+
 Add `USE_DEFAULT_STYLES()` into your diagram to style Component, Sequence, Activity, and Class Diagrams! See ERD section below for adding styles for ER diagrams. If you would like to opt-in to word wrapping of notes, descriptions and arrow lines you can add `USE_WORD_WRAP()`. This will default to 125 characters, you can change this by passing a parameter, for example: `USE_WORD_WRAP(100)`
 
 ### Common Components
+
 #### Header
+
 To stamp your diagram with your name, company, and a revision number you can add `header STD_HEADER` into your diagram. To set your name simply add `!define AUTHOR_NAME First Last` to your diagram and replace "First Last" with your own name. To set a company name add `!define COMPANY_NAME Company Name` to your diagram and replace "Company Name" with your own company name.
 
 #### Footer
+
 To stamp your diagram with a confidential notice you can add `footer STD_FOOTER` into your diagram. To set a company name add `!define COMPANY_NAME Company Name` to your diagram and replace "Company Name" with your own company name.
 
 ### ERD
+
 Due to some styling conflicts and limitations from Plantuml we must also append `USE_ERD_STYLES()` after adding `USE_DEFAULT_STYLES()` to correctly style ER diagrams without breaking existing Class Diagrams.
 
 A new object type is added called `table`. You can use it like this:
