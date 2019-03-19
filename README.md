@@ -21,26 +21,8 @@ This is useful when you are merging PRs from another service (Github, etc) and w
 
 #### Example Output
 
-```bash
-$ ../branch-tidy.sh
-Running in directory: /Users/brandon/foo_project
-Fetching master...
-  squashed      gql/fix-dup-error-part-two
-not merged      hot-keys
-not merged      item-progress/aggregate-checks
-not merged      item-progress/identify-when-missing-values
-  squashed      my-items/support-flex-items
-  squashed      nb/validate-sale-messages
-    merged      queues/cleanup-for-aaron
-not merged      stale/braze/email-changed-notification
-not merged      stale/ia/item-assignments/remove-item-ass-from-get-next-ass
-not merged      stale/ia/item-assignments/remove-item-ass-from-my-items
-not merged      stale/ia/item-assignments/remove-item-ass-from-queues
-not merged      stale/rollbar/category-admin-setting-description-fix
-not merged      tests/fix-flex-tests
-
-Delete all 4 merged/squashed branches? [y/N]
-```
+![script screenshot](images/branch-tidy.gif)
+_NOTE: Please ignore that the script was renamed in the screenshot_
 
 #### Invoke Externally (macOS)
 
