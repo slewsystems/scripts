@@ -22,6 +22,7 @@ This is useful when you are merging PRs from another service (Github, etc) and w
 #### Example Output
 
 ![script screenshot](images/branch-tidy.gif)
+
 _NOTE: Please ignore that the script was renamed in the screenshot_
 
 #### Invoke Externally (macOS)

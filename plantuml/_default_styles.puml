@@ -64,6 +64,11 @@
         }
     }
 
+    skinparam Swimlane {
+        BorderColor SlateGray
+        BorderThickness 2
+    }
+
     ' STATE DIAGRAM STYLING
 
     skinparam State {
