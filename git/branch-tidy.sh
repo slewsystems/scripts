@@ -24,8 +24,6 @@ NC="\\033[0m"
 
 CWD=$(pwd)
 GIT_DIR=${1:-$CWD}
-RELEASE_BRANCH=master
-INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 function ask() {
     # https://djm.me/ask
@@ -91,19 +89,21 @@ function destroy_branch() {
     fi
 }
 
-echo -e "${Y}Running in directory: ${GIT_DIR}${NC}"
+cd "$GIT_DIR"
+echo -e "${Y}Running in directory: $(pwd)${NC}"
 
 if ! [ -d "$GIT_DIR/.git" ]; then
     echo -e "${R}ERROR: Directory is not a git repository${NC}"
     exit 1
-else
-    cd "$GIT_DIR"
 fi
 
 if ! [ -x "$(command -v git)" ]; then
     echo -e "${R}ERROR: Missing git command. To install run: ${NC}brew install git${NC}"
     exit 1
 fi
+
+RELEASE_BRANCH=master
+INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 echo -e "${Y}Fetching $RELEASE_BRANCH (and pruning)...${NC}"
 if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
@@ -116,6 +116,9 @@ RELEASE_BRANCH_COMMIT=$(git rev-parse master)
 ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
 MERGED_BRANCHES=()
+
+# TODO: detect branches that are many many commits behind master
+# TODO: detect branches that have no remote branch (not tracked)
 
 # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
 for refname in "${ALL_BRANCHES[@]}"; do :
