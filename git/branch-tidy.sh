@@ -95,6 +95,8 @@ echo -e "${Y}Running in directory: ${GIT_DIR}${NC}"
 if ! [ -d "$GIT_DIR/.git" ]; then
     echo -e "${R}ERROR: Directory is not a git repository${NC}"
     exit 1
+else
+    cd "$GIT_DIR"
 fi
 
 if ! [ -x "$(command -v git)" ]; then
