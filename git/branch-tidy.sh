@@ -104,8 +104,8 @@ if ! [ -x "$(command -v git)" ]; then
     exit 1
 fi
 
-echo -e "${Y}Fetching $RELEASE_BRANCH...${NC}"
-if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok; then
+echo -e "${Y}Fetching $RELEASE_BRANCH (and pruning)...${NC}"
+if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
     echo -e "${R}ERROR: Could not fetch $RELEASE_BRANCH${NC}"
 fi
 
