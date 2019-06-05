@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#!/bin/bash
 
 # ---------------------------
 # Author: Brandon Patram
@@ -21,11 +21,14 @@ R="\\033[0;31m"
 NC="\\033[0m"
 # BOLD="\\033[1m"
 
+CWD=$(pwd)
 STASH_MESSAGE=$(uuidgen)
-GIT_DIR=${1:-$CWD}
-TARGET_BRANCH=${2:master}
+RELEASE_BRANCH=master
+TARGET_BRANCH=${1:-$RELEASE_BRANCH}
+GIT_DIR=${2:-$CWD}
 
-echo -e "${Y}Running in directory: ${GIT_DIR}${NC}"
+cd "$GIT_DIR"
+echo -e "${Y}Running in directory: $(pwd)${NC}"
 
 if ! [ -d "$GIT_DIR/.git" ]; then
     echo -e "${R}ERROR: Directory is not a git repository${NC}"
