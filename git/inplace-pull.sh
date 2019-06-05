@@ -35,6 +35,11 @@ if ! [ -d "$GIT_DIR/.git" ]; then
     exit 1
 fi
 
+if ! [ -x "$(command -v git)" ]; then
+    echo -e "${R}ERROR: Missing git command. To install run: ${NC}brew install git${NC}"
+    exit 1
+fi
+
 if [[ -z "$2" ]]; then
     echo -e "${Y}WARN: No target branch specified, using $TARGET_BRANCH instead${NC}"
 fi
