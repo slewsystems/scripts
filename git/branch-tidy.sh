@@ -89,10 +89,10 @@ function destroy_branch() {
     fi
 }
 
-cd "$GIT_DIR"
-echo -e "${Y}Running in directory: $(pwd)${NC}"
-
-if ! [ -d "$GIT_DIR/.git" ]; then
+if [ -d "$GIT_DIR/.git" ]; then
+    cd "$GIT_DIR" || exit 1
+    echo -e "${Y}Running in directory: $(pwd)${NC}"
+else
     echo -e "${R}ERROR: Directory is not a git repository${NC}"
     exit 1
 fi
@@ -106,7 +106,7 @@ RELEASE_BRANCH=master
 INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 echo -e "${Y}Fetching $RELEASE_BRANCH (and pruning)...${NC}"
-if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
+if ! git fetch --quiet origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
     echo -e "${R}ERROR: Could not fetch $RELEASE_BRANCH${NC}"
 fi
 
