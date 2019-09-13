@@ -1,4 +1,6 @@
 @startuml
+!pragma teoz true
+
 !define TODAY %date[yyyy-MM-dd]%
 !define CODE_FONT Menlo
 
