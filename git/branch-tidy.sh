@@ -20,13 +20,15 @@ Y="\\033[0;33m"
 G="\\033[0;32m"
 R="\\033[0;31m"
 NC="\\033[0m"
-# BOLD="\\033[1m"
 
-CWD=$(pwd)
-GIT_DIR=${1:-$CWD}
+function echo_error()     { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
+function echo_warn()      { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
+function echo_soft_warn() { echo -e "\\033[0;33m$*\\033[0m"; }
+function echo_success()   { echo -e "\\033[0;32m$*\\033[0m"; }
+function echo_info()      { echo -e "$*\\033[0m"; }
 
 function ask() {
-    # https://djm.me/ask
+    # https://gist.github.com/davejamesmiller/1965569
     local prompt default reply
 
     while true; do
@@ -73,98 +75,135 @@ function destroy_branch() {
     # so lets check if we are on that branch, if so
     # attempt to checkout master and then try to delete
     if [ "$current_branch_name" == "$branch_name" ]; then
-        echo -e "${Y}WARN: You are on this branch so it cannot be deleted.${NC}"
+        echo_warn "You are on this branch so it cannot be deleted."
         if ask "Checkout $release_branch and try again?"; then
             if ! git checkout -q "$release_branch"; then
-                echo -e "${R}ERROR: Could not checkout $RELEASE_BRANCH. $branch_name will not be deleted${NC}"
+                echo_error "Could not checkout $RELEASE_BRANCH. $branch_name will not be deleted"
             fi
         fi
     fi
 
     # TODO: delete remote tracking branch if it exists too
     if git branch -q -D "$branch_name"; then
-        echo -e "${G}Deleted $branch_name${NC}"
+        echo_success "Deleted $branch_name"
     else
-        echo -e "${R}ERROR: Failed to delete $branch_name${NC}"
+        echo_error "Failed to delete $branch_name"
     fi
 }
 
-if [ -d "$GIT_DIR/.git" ]; then
-    cd "$GIT_DIR" || exit 1
-    echo -e "${Y}Running in directory: $(pwd)${NC}"
-else
-    echo -e "${R}ERROR: Directory is not a git repository${NC}"
-    exit 1
-fi
+function sanity_check_directory() {
+    if ! [ -d "$GIT_DIR/.git" ]; then
+        echo_error "Directory is not a git repository"
+        return 1
+    fi
 
-if ! [ -x "$(command -v git)" ]; then
-    echo -e "${R}ERROR: Missing git command. To install run: ${NC}brew install git${NC}"
-    exit 1
-fi
+    if ! [ -x "$(command -v git)" ]; then
+        echo_error "Missing git command. To install run: brew install git"
+        return 1
+    fi
+}
 
-RELEASE_BRANCH=master
-INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+function fetch_branches() {
+    echo_info "Fetching $RELEASE_BRANCH (and pruning)..."
+    if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
+        echo_error "Could not fetch $RELEASE_BRANCH"
+        return 1
+    fi
+}
 
-echo -e "${Y}Fetching $RELEASE_BRANCH (and pruning)...${NC}"
-if ! git fetch --quiet origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
-    echo -e "${R}ERROR: Could not fetch $RELEASE_BRANCH${NC}"
-fi
+function scan_branches_for_deletion() {
+    RELEASE_BRANCH_COMMIT=$(git rev-parse master)
 
-RELEASE_BRANCH_COMMIT=$(git rev-parse master)
+    # pull all local branches (exclude master)
+    ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
-# pull all local branches (exclude master)
-ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
+    MERGED_BRANCHES=()
 
-MERGED_BRANCHES=()
+    # TODO: detect branches that are many many commits behind master
+    # TODO: detect branches that have no remote branch (not tracked)
 
-# TODO: detect branches that are many many commits behind master
-# TODO: detect branches that have no remote branch (not tracked)
+    # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
+    for refname in "${ALL_BRANCHES[@]}"; do :
+        # list out merged branches from master, but only look at the curent branch
+        # and ignore master itself. pretty much: if this returns nothing then no
+        # merged branch (this branch) is merged. if there is a return value then
+        # thats means this branch is merged!
+        merged_branch=$(git branch --merged="$RELEASE_BRANCH" --contains="$refname" --no-contains="$RELEASE_BRANCH")
 
-# thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
-for refname in "${ALL_BRANCHES[@]}"; do :
-    # list out merged branches from master, but only look at the current branch
-    # and ignore master itself. pretty much: if this returns nothing then no
-    # merged branch (this branch) is merged. if there is a return value then
-    # thats means this branch is merged!
-    merged_branch=$(git branch --merged="$RELEASE_BRANCH" --contains="$refname" --no-contains="$RELEASE_BRANCH")
-
-    # lets check if the branch is merged into latest master.
-    # if not then lets check if the branch has been squashed into master
-    if ! [ -z "$merged_branch" ]; then
-        printf "${G}%10s${NC}\\t%s \\n" "merged" "$refname"
-        MERGED_BRANCHES+=("$refname")
-    else
-        # find commit on master that this branch branched from or the common ancestor
-        merge_base=$(git merge-base "$RELEASE_BRANCH_COMMIT" "$refname")
-        # get tree hash ref of branch
-        tree=$(git rev-parse "$refname^{tree}")
-        # create a temporary dangling commit... we will use this to compare to commits in master
-        commit_tree=$(git commit-tree "$tree" -p "$merge_base" -m _)
-        # does this commit exist in commit history?
-        cherry_commit=$(git cherry master "$commit_tree")
-
-        if [[ $cherry_commit == "-"* ]]; then
-            printf "${G}%10s${NC}\\t%s \\n" "squashed" "$refname"
+        # lets check if the branch is merged into latest master.
+        # if not then lets check if the branch has been squashed into master
+        if ! [ -z "$merged_branch" ]; then
+            printf "${G}%10s${NC}\\t%s \\n" "merged" "$refname"
             MERGED_BRANCHES+=("$refname")
         else
-            printf "${R}%10s${NC}\\t%s \\n" "not merged" "$refname"
+            # find commit on master that this branch branched from or the common ancestor
+            merge_base=$(git merge-base "$RELEASE_BRANCH_COMMIT" "$refname")
+            # get tree hash ref of branch
+            tree=$(git rev-parse "$refname^{tree}")
+            # create a temporary dangling commit... we will use this to compare to commits in master
+            commit_tree=$(git commit-tree "$tree" -p "$merge_base" -m _)
+            # does this commit exist in commit history?
+            cherry_commit=$(git cherry master "$commit_tree")
+
+            if [[ $cherry_commit == "-"* ]]; then
+                printf "${G}%10s${NC}\\t%s \\n" "squashed" "$refname"
+                MERGED_BRANCHES+=("$refname")
+            else
+                printf "${R}%10s${NC}\\t%s \\n" "not merged" "$refname"
+            fi
         fi
+    done
+
+    if [ ${#MERGED_BRANCHES[@]} -eq 0 ]; then
+        echo_success "No merged/squashed branches found. Well done!"
+        exit 0
     fi
-done
 
-if [ ${#MERGED_BRANCHES[@]} -eq 0 ]; then
-    echo -e "${G}No merged/squashed branches found. Well done!${NC}"
-    exit 0
-fi
+    if ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
+        for refname in "${MERGED_BRANCHES[@]}"; do :
+            destroy_branch "$refname"
+        done
+    else
+        for refname in "${MERGED_BRANCHES[@]}"; do :
+            prompt_destroy_branch "$refname" "N"
+        done
+    fi
+}
 
-if ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
-    for refname in "${MERGED_BRANCHES[@]}"; do :
-        destroy_branch "$refname"
+function main() {
+    local GIT_DIR=$(pwd)
+    local OPTIND opt
+    RELEASE_BRANCH="master"
+
+    while getopts ":hC:b:" opt; do
+        case "${opt}" in
+            C)
+                GIT_DIR="$OPTARG"
+            ;;
+            b)
+                RELEASE_BRANCH="$OPTARG"
+            ;;
+            h)
+                echo -e "Usage:\nbranch-tidy.sh [-C path/to/repo] [-b master]" && exit 0
+            ;;
+            \?)
+                echo "Invalid Option: -$OPTARG" 1>&2
+                exit 1
+            ;;
+        esac
     done
-else
-    for refname in "${MERGED_BRANCHES[@]}"; do :
-        prompt_destroy_branch "$refname" "N"
-    done
-fi
 
-echo -e "${G}Done!${NC}"
+    cd "$GIT_DIR"
+    echo_soft_warn "Running in directory: $PWD"
+    echo_soft_warn "Comparing against branch: $RELEASE_BRANCH"
+
+    sanity_check_directory || exit 1
+
+    INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+    fetch_branches || :
+
+    scan_branches_for_deletion || exit 1
+
+    echo_success "Done!"
+}; main "$@"
