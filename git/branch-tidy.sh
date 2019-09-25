@@ -9,11 +9,12 @@ set -e
 # or have been squashed into a single merge commit
 # into master then prompt to delete them or all of them
 #
-# Usage: branch-tidy.sh [path to repo=$(pwd)]
+# Usage: branch-tidy.sh [-C $(pwd)] [-b master]
 # Examples:
 # ../branch-tidy.sh
-# branch-tidy.sh path/to-repo
-# yes y | branch-tidy.sh path/to-repo
+# branch-tidy.sh -C path/to-repo
+# branch-tidy.sh -C path/to-repo -b develop
+# yes y | branch-tidy.sh -C path/to-repo
 # ---------------------------
 
 Y="\\033[0;33m"
