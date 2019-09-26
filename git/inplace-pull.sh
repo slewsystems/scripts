@@ -8,11 +8,11 @@
 # Will stash your current changes and re-apply them after pulling
 # down the target branch (or master if not defined)
 #
-# Usage: inplace-pull.sh [path to repo] [branch to pull=master]
+# Usage: inplace-pull.sh [-C path to repo] [-b branch to pull=master]
 # Examples:
-# ../inplace-pull.sh master
-# inplace-pull.sh develop path/to-repo
-# inplace-pull.sh path/to-repo
+# ../inplace-pull.sh -b master
+# inplace-pull.sh -b develop -C path/to-repo
+# inplace-pull.sh -C path/to-repo
 # ---------------------------
 
 Y="\\033[0;33m"
@@ -21,11 +21,27 @@ R="\\033[0;31m"
 NC="\\033[0m"
 # BOLD="\\033[1m"
 
-CWD=$(pwd)
 STASH_MESSAGE=$(uuidgen)
-RELEASE_BRANCH=master
-TARGET_BRANCH=${1:-$RELEASE_BRANCH}
-GIT_DIR=${2:-$CWD}
+TARGET_BRANCH=""
+GIT_DIR=$(pwd)
+
+while getopts ":hC:b:" opt; do
+    case "${opt}" in
+        C)
+            GIT_DIR="$OPTARG"
+        ;;
+        b)
+            TARGET_BRANCH="$OPTARG"
+        ;;
+        h)
+            echo -e "Usage:\ninplace-pull.sh [-C path/to/repo] [-b master]" && exit 0
+        ;;
+        \?)
+            echo "Invalid Option: -$OPTARG" 1>&2
+            exit 1
+        ;;
+    esac
+done
 
 cd "$GIT_DIR"
 echo -e "${Y}Running in directory: $(pwd)${NC}"
@@ -40,7 +56,8 @@ if ! [ -x "$(command -v git)" ]; then
     exit 1
 fi
 
-if [[ -z "$2" ]]; then
+if [[ -z "$TARGET_BRANCH" ]]; then
+    TARGET_BRANCH="master"
     echo -e "${Y}WARN: No target branch specified, using $TARGET_BRANCH instead${NC}"
 fi
 
