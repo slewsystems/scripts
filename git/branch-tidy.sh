@@ -208,7 +208,7 @@ function main() {
 
     INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-    fetch_branches || :
+    fetch_branches || echo_warn "Comparing to outdated repo state!"
 
     scan_branches_for_deletion || exit 1
 
