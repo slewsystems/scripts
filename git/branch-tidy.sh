@@ -127,7 +127,7 @@ function scan_branches_for_deletion() {
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do :
         if [[ " ${WHITELIST_BRANCHES[@]} " =~ " $refname " ]]; then
-            echo_soft_warn "Ignoring whitelisted branch: $refname"
+            printf "${Y}%10s${NC}\\t%s \\n" "ignored" "$refname"
             continue
         fi
 
