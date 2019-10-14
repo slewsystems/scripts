@@ -113,18 +113,24 @@ function fetch_branches() {
 }
 
 function scan_branches_for_deletion() {
-    RELEASE_BRANCH_COMMIT=$(git rev-parse master)
+    local RELEASE_BRANCH_COMMIT=$(git rev-parse master)
 
     # pull all local branches (exclude master)
-    ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
+    local ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
-    MERGED_BRANCHES=()
+    local MERGED_BRANCHES=()
+    local WHITELIST_BRANCHES=("master" "develop")
 
     # TODO: detect branches that are many many commits behind master
     # TODO: detect branches that have no remote branch (not tracked)
 
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do :
+        if [[ " ${WHITELIST_BRANCHES[@]} " =~ " $refname " ]]; then
+            echo_soft_warn "Ignoring whitelisted branch: $refname"
+            continue
+        fi
+
         # list out merged branches from master, but only look at the curent branch
         # and ignore master itself. pretty much: if this returns nothing then no
         # merged branch (this branch) is merged. if there is a return value then
