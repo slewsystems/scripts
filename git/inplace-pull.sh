@@ -23,9 +23,9 @@ NC="\\033[0m"
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
 function echo_warn() { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
-function echo_soft_warn() { [ $SILENCE = false ] && echo -e "\\033[0;33m$*\\033[0m"; }
-function echo_success() { [ $SILENCE = false ] && echo -e "\\033[0;32m$*\\033[0m"; }
-function echo_info() { [ $SILENCE = false ] && echo -e "$*\\033[0m"; }
+function echo_soft_warn() { [ $SILENCE = false ] && echo -e "\\033[0;33m$*\\033[0m" || :; }
+function echo_success() { [ $SILENCE = false ] && echo -e "\\033[0;32m$*\\033[0m" || :; }
+function echo_info() { [ $SILENCE = false ] && echo -e "$*\\033[0m" || :; }
 
 STASH_MESSAGE=$(uuidgen)
 SILENCE=false
