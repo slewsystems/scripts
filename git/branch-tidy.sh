@@ -113,28 +113,28 @@ function fetch_branches() {
 }
 
 function scan_branches_for_deletion() {
-    local RELEASE_BRANCH_COMMIT=$(git rev-parse master)
+    local RELEASE_BRANCH_COMMIT=$(git rev-parse "$RELEASE_BRANCH")
 
-    # pull all local branches (exclude master)
+    # pull all local branches (exclude RELEASE_BRANCH)
     local ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
     local MERGED_BRANCHES=()
-    local WHITELIST_BRANCHES=("master" "develop")
+    local WHITELIST_BRANCHES=("master" "$RELEASE_BRANCH")
 
     # TODO: detect branches that are many many commits behind master
     # TODO: detect branches that have no remote branch (not tracked)
 
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
-    for refname in "${ALL_BRANCHES[@]}"; do :
+    for refname in "${ALL_BRANCHES[@]}"; do
         if [[ " ${WHITELIST_BRANCHES[@]} " =~ " $refname " ]]; then
             printf "${Y}%10s${NC}\\t%s \\n" "ignored" "$refname"
             continue
         fi
 
-        # list out merged branches from master, but only look at the curent branch
-        # and ignore master itself. pretty much: if this returns nothing then no
-        # merged branch (this branch) is merged. if there is a return value then
-        # thats means this branch is merged!
+        # list out merged branches from RELEASE_BRANCH, but only look at the curent branch
+        # and ignore RELEASE_BRANCH itself. pretty much: if this returns nothing then no
+        # merged branches (this branch) are merged. if there is a return value then
+        # thats means this branch is merged via a merge commit.
         merged_branch=$(git branch --merged="$RELEASE_BRANCH" --contains="$refname" --no-contains="$RELEASE_BRANCH")
 
         # lets check if the branch is merged into latest master.
@@ -150,7 +150,7 @@ function scan_branches_for_deletion() {
             # create a temporary dangling commit... we will use this to compare to commits in master
             commit_tree=$(git commit-tree "$tree" -p "$merge_base" -m _)
             # does this commit exist in commit history?
-            cherry_commit=$(git cherry master "$commit_tree")
+            cherry_commit=$(git cherry "$RELEASE_BRANCH" "$commit_tree")
 
             if [[ $cherry_commit == "-"* ]]; then
                 printf "${G}%10s${NC}\\t%s \\n" "squashed" "$refname"
