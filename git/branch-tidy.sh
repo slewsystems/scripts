@@ -17,16 +17,37 @@ set -e
 # yes y | branch-tidy.sh -C path/to-repo
 # ---------------------------
 
-Y="\\033[0;33m"
-G="\\033[0;32m"
-R="\\033[0;31m"
-NC="\\033[0m"
-
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
 function echo_warn() { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
 function echo_soft_warn() { echo -e "\\033[0;33m$*\\033[0m"; }
 function echo_success() { echo -e "\\033[0;32m$*\\033[0m"; }
 function echo_info() { echo -e "$*\\033[0m"; }
+
+# print_branch_list_item [branch status] [branch name]
+# print_branch_list_item "ignored" branch_name
+# print_branch_list_item "squashed" branch_name
+# print_branch_list_item "merged" branch_name
+# print_branch_list_item "not merged" branch_name
+function print_branch_list_item() {
+    local COLOR="\\033[0m" # no color
+    local BRANCH_STATUS="$1"
+    local BRANCH_NAME="$2"
+
+    case "$BRANCH_STATUS" in
+    "squashed") ;& # fall through
+    "merged")
+        COLOR="\\033[0;32m" # green
+        ;;
+    "not merged")
+        COLOR="\\033[0;31m" # red
+        ;;
+    "ignored")
+        COLOR="\\033[0;33m" # yellow
+        ;;
+    esac
+
+    printf "${COLOR}%10s\\033[0m\\t%s \\n" "$BRANCH_STATUS" "$BRANCH_NAME"
+}
 
 function ask() {
     # https://gist.github.com/davejamesmiller/1965569
@@ -127,7 +148,7 @@ function scan_branches_for_deletion() {
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do
         if [[ " ${WHITELIST_BRANCHES[@]} " =~ " $refname " ]]; then
-            printf "${Y}%10s${NC}\\t%s \\n" "ignored" "$refname"
+            print_branch_list_item "ignored" "$refname"
             continue
         fi
 
@@ -140,7 +161,7 @@ function scan_branches_for_deletion() {
         # lets check if the branch is merged into latest master.
         # if not then lets check if the branch has been squashed into master
         if ! [ -z "$merged_branch" ]; then
-            printf "${G}%10s${NC}\\t%s \\n" "merged" "$refname"
+            print_branch_list_item "merged" "$refname"
             MERGED_BRANCHES+=("$refname")
         else
             # find commit on master that this branch branched from or the common ancestor
@@ -153,10 +174,10 @@ function scan_branches_for_deletion() {
             cherry_commit=$(git cherry "$RELEASE_BRANCH" "$commit_tree")
 
             if [[ $cherry_commit == "-"* ]]; then
-                printf "${G}%10s${NC}\\t%s \\n" "squashed" "$refname"
+                print_branch_list_item "squashed" "$refname"
                 MERGED_BRANCHES+=("$refname")
             else
-                printf "${R}%10s${NC}\\t%s \\n" "not merged" "$refname"
+                print_branch_list_item "not merged" "$refname"
             fi
         fi
     done
