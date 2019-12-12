@@ -22,11 +22,11 @@ G="\\033[0;32m"
 R="\\033[0;31m"
 NC="\\033[0m"
 
-function echo_error()     { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
-function echo_warn()      { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
+function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
+function echo_warn() { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
 function echo_soft_warn() { echo -e "\\033[0;33m$*\\033[0m"; }
-function echo_success()   { echo -e "\\033[0;32m$*\\033[0m"; }
-function echo_info()      { echo -e "$*\\033[0m"; }
+function echo_success() { echo -e "\\033[0;32m$*\\033[0m"; }
+function echo_info() { echo -e "$*\\033[0m"; }
 
 function ask() {
     # https://gist.github.com/davejamesmiller/1965569
@@ -52,8 +52,8 @@ function ask() {
         fi
 
         case "$reply" in
-            Y*|y*) return 0 ;;
-            N*|n*) return 1 ;;
+        Y* | y*) return 0 ;;
+        N* | n*) return 1 ;;
         esac
     done
 }
@@ -167,11 +167,11 @@ function scan_branches_for_deletion() {
     fi
 
     if ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
-        for refname in "${MERGED_BRANCHES[@]}"; do :
+        for refname in "${MERGED_BRANCHES[@]}"; do
             destroy_branch "$refname"
         done
     else
-        for refname in "${MERGED_BRANCHES[@]}"; do :
+        for refname in "${MERGED_BRANCHES[@]}"; do
             prompt_destroy_branch "$refname" "N"
         done
     fi
@@ -184,18 +184,18 @@ function main() {
 
     while getopts ":hC:b:" opt; do
         case "${opt}" in
-            C)
-                GIT_DIR="$OPTARG"
+        C)
+            GIT_DIR="$OPTARG"
             ;;
-            b)
-                RELEASE_BRANCH="$OPTARG"
+        b)
+            RELEASE_BRANCH="$OPTARG"
             ;;
-            h)
-                echo -e "Usage:\nbranch-tidy.sh [-C path/to/repo] [-b master]" && exit 0
+        h)
+            echo -e "Usage:\nbranch-tidy.sh [-C path/to/repo] [-b master]" && exit 0
             ;;
-            \?)
-                echo "Invalid Option: -$OPTARG" 1>&2
-                exit 1
+        \?)
+            echo "Invalid Option: -$OPTARG" 1>&2
+            exit 1
             ;;
         esac
     done
@@ -213,4 +213,5 @@ function main() {
     scan_branches_for_deletion || exit 1
 
     echo_success "Done!"
-}; main "$@"
+}
+main "$@"
