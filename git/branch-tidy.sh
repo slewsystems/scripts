@@ -123,7 +123,9 @@ function sanity_check_directory() {
         echo_error "Directory is not a git repository"
         return 1
     fi
+}
 
+function ensure_requirements() {
     if ! [ -x "$(command -v git)" ]; then
         echo_error "Missing git command. To install run: brew install git"
         return 1
