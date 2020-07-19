@@ -130,3 +130,9 @@ table(items_progress_report_caches) {
 
 has_one(items_progress_report_caches, items)
 ```
+
+## AWS
+
+### `sts-login.sh`
+
+Login to AWS CLI using a MFA device.
