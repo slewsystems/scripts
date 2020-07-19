@@ -134,17 +134,18 @@ function ensure_requirements() {
 
 function fetch_branches() {
     echo_info "Fetching $RELEASE_BRANCH (and pruning)..."
-    if ! git fetch -q origin $RELEASE_BRANCH:$RELEASE_BRANCH --update-head-ok --prune; then
+    if ! git fetch -q origin "$RELEASE_BRANCH" --update-head-ok --prune; then
         echo_error "Could not fetch $RELEASE_BRANCH"
         return 1
     fi
 }
 
 function scan_branches_for_deletion() {
-    local RELEASE_BRANCH_COMMIT=$(git rev-parse "$RELEASE_BRANCH")
+    local RELEASE_BRANCH_COMMIT ALL_BRANCHES
 
+    RELEASE_BRANCH_COMMIT=$(git rev-parse "$RELEASE_BRANCH")
     # pull all local branches (exclude RELEASE_BRANCH)
-    local ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
+    ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
     local MERGED_BRANCHES=()
     local WHITELIST_BRANCHES=("master" "$RELEASE_BRANCH")
@@ -167,7 +168,7 @@ function scan_branches_for_deletion() {
 
         # lets check if the branch is merged into latest master.
         # if not then lets check if the branch has been squashed into master
-        if ! [ -z "$merged_branch" ]; then
+        if [ -n "$merged_branch" ]; then
             print_branch_list_item "merged" "$refname"
             MERGED_BRANCHES+=("$refname")
         else
@@ -206,8 +207,9 @@ function scan_branches_for_deletion() {
 }
 
 function main() {
-    local GIT_DIR=$(pwd)
-    local OPTIND opt
+    local GIT_DIR opt
+
+    GIT_DIR=$(pwd)
     RELEASE_BRANCH="master"
 
     while getopts ":hC:b:" opt; do
