@@ -24,18 +24,17 @@ function echo_success() { echo -e "\\033[0;32m$*\\033[0m"; }
 function echo_info() { echo -e "$*\\033[0m"; }
 
 # print_branch_list_item [branch status] [branch name]
-# print_branch_list_item "ignored" branch_name
-# print_branch_list_item "squashed" branch_name
-# print_branch_list_item "merged" branch_name
-# print_branch_list_item "not merged" branch_name
+# print_branch_list_item "ignored" [branch_name]
+# print_branch_list_item "squashed" [branch_name]
+# print_branch_list_item "merged" [branch_name]
+# print_branch_list_item "not merged" [branch_name]
 function print_branch_list_item() {
     local COLOR="\\033[0m" # no color
     local BRANCH_STATUS="$1"
     local BRANCH_NAME="$2"
 
     case "$BRANCH_STATUS" in
-    "squashed") ;& # fall through
-    "merged")
+    "squashed" | "merged")
         COLOR="\\033[0;32m" # green
         ;;
     "not merged")
@@ -84,8 +83,10 @@ function ask() {
 }
 
 function prompt_destroy_branch() {
+    local branch_name
+    local default_response
     branch_name=$1
-    default_response=${2:N}
+    default_response=${2:n}
 
     if ask "Delete branch ${branch_name}?" "${default_response}"; then
         destroy_branch "$branch_name"
