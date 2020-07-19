@@ -49,6 +49,10 @@ function print_branch_list_item() {
     printf "${COLOR}%10s\\033[0m\\t%s \\n" "$BRANCH_STATUS" "$BRANCH_NAME"
 }
 
+# Look for an element in a list (thank you: https://stackoverflow.com/a/8063398/5286136)
+# list_contains $list "something"
+function list_contains() { [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]]; }
+
 function ask() {
     # https://gist.github.com/davejamesmiller/1965569
     local prompt default reply
@@ -147,7 +151,7 @@ function scan_branches_for_deletion() {
 
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do
-        if [[ " ${WHITELIST_BRANCHES[@]} " =~ " $refname " ]]; then
+        if list_contains "${WHITELIST_BRANCHES[*]}" "$refname"; then
             print_branch_list_item "ignored" "$refname"
             continue
         fi
