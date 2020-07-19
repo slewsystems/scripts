@@ -221,7 +221,9 @@ function main() {
         esac
     done
 
-    cd "$GIT_DIR"
+    ensure_requirements || exit 1
+
+    cd "$GIT_DIR" || exit 1
     echo_soft_warn "Running in directory: $PWD"
     echo_soft_warn "Comparing against branch: $RELEASE_BRANCH"
 
