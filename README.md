@@ -63,9 +63,9 @@ $ ../glob-changed-files.sh "\\.(scss|css)"
 {this.css,that.scss}
 ```
 
-# Plantuml
+## Plantuml
 
-## `_default_styles.puml`
+### `_default_styles.puml`
 
 You can include this file into your Plantuml diagrams to opt into some better looking styles and some common diagram components. To start using this today in the easier manner you can append the following to the very top of your diagram (within `@startuml`):
 
@@ -73,21 +73,21 @@ You can include this file into your Plantuml diagrams to opt into some better lo
 !includeurl https://raw.githubusercontent.com/slewsystems/scripts/master/plantuml/_default_styles.puml
 ```
 
-### Styles
+#### Styles
 
 Add `USE_DEFAULT_STYLES()` into your diagram to style Component, Sequence, Activity, and Class Diagrams! See ERD section below for adding styles for ER diagrams. If you would like to opt-in to word wrapping of notes, descriptions and arrow lines you can add `USE_WORD_WRAP()`. This will default to 125 characters, you can change this by passing a parameter, for example: `USE_WORD_WRAP(100)`
 
-### Common Components
+#### Common Components
 
-#### Header
+##### Header
 
 To stamp your diagram with your name, company, and a revision number you can add `header STD_HEADER` into your diagram. To set your name simply add `!define AUTHOR_NAME First Last` to your diagram and replace "First Last" with your own name. To set a company name add `!define COMPANY_NAME Company Name` to your diagram and replace "Company Name" with your own company name.
 
-#### Footer
+##### Footer
 
 To stamp your diagram with a confidential notice you can add `footer STD_FOOTER` into your diagram. To set a company name add `!define COMPANY_NAME Company Name` to your diagram and replace "Company Name" with your own company name.
 
-### ERD
+#### ERD
 
 Due to some styling conflicts and limitations from Plantuml we must also append `USE_ERD_STYLES()` after adding `USE_DEFAULT_STYLES()` to correctly style ER diagrams without breaking existing Class Diagrams.
 
