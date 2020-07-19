@@ -15,22 +15,16 @@
 # inplace-pull.sh -C path/to-repo
 # ---------------------------
 
-Y="\\033[0;33m"
-G="\\033[0;32m"
-R="\\033[0;31m"
-NC="\\033[0m"
-# BOLD="\\033[1m"
-
-function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
-function echo_warn() { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
-function echo_soft_warn() { [ $SILENCE = false ] && echo -e "\\033[0;33m$*\\033[0m" || :; }
-function echo_success() { [ $SILENCE = false ] && echo -e "\\033[0;32m$*\\033[0m" || :; }
-function echo_info() { [ $SILENCE = false ] && echo -e "$*\\033[0m" || :; }
-
 STASH_MESSAGE=$(uuidgen)
 SILENCE=false
 TARGET_BRANCH=""
 GIT_DIR=$(pwd)
+
+function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
+function echo_warn() { echo -e "\\033[0;33m[WARN] $*\\033[0m"; }
+function echo_soft_warn() { if [ "$SILENCE" = false ]; then echo -e "\\033[0;33m$*\\033[0m"; fi; }
+function echo_success() { if [ "$SILENCE" = false ]; then echo -e "\\033[0;32m$*\\033[0m"; fi; }
+function echo_info() { if [ "$SILENCE" = false ]; then echo -e "$*\\033[0m"; fi; }
 
 while getopts ":hC:b:q" opt; do
     case "${opt}" in
@@ -53,8 +47,9 @@ while getopts ":hC:b:q" opt; do
     esac
 done
 
-cd "$GIT_DIR"
-echo_soft_warn "Running in directory: $PWD"
+if cd "$GIT_DIR"; then
+    echo_soft_warn "Running in directory: $PWD"
+fi
 
 if ! [ -d "$GIT_DIR/.git" ]; then
     echo_error "Directory is not a git repository"
@@ -89,7 +84,7 @@ git checkout -q "$CURRENT_BRANCH"
 
 # if a stash was made/found, pop it
 # its possible a stash was not created if there was nothing to stash
-if ! [[ -z "$STASH_ID" ]]; then
+if [ -n "$STASH_ID" ]; then
     git stash pop -q "$STASH_ID"
 fi
 
