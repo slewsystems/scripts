@@ -36,13 +36,13 @@ function print_branch_list_item() {
 
     case "$BRANCH_STATUS" in
     "squashed" | "merged")
-        COLOR="\\033[0;32m" # green
-        ;;
-    "not merged")
         COLOR="\\033[0;31m" # red
         ;;
+    "not merged")
+        COLOR="\\033[0;34m" # blue
+        ;;
     "ignored")
-        COLOR="\\033[0;33m" # yellow
+        COLOR="\\033[0;32m" # green
         ;;
     esac
 
