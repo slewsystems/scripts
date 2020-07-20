@@ -28,6 +28,8 @@ function echo_info() { echo -e "$*\\033[0m"; }
 # print_branch_list_item "ignored" [branch_name]
 # print_branch_list_item "squashed" [branch_name]
 # print_branch_list_item "merged" [branch_name]
+# print_branch_list_item "stale" [branch_name]
+# print_branch_list_item "untracked" [branch_name]
 # print_branch_list_item "not merged" [branch_name]
 function print_branch_list_item() {
     local COLOR="\\033[0m" # no color
@@ -38,10 +40,13 @@ function print_branch_list_item() {
     "squashed" | "merged")
         COLOR="\\033[0;31m" # red
         ;;
+    "stale")
+        COLOR="\\033[0;33m" # yellow
+        ;;
     "not merged")
         COLOR="\\033[0;34m" # blue
         ;;
-    "ignored")
+    "ignored" | "untracked")
         COLOR="\\033[0;32m" # green
         ;;
     esac
@@ -187,8 +192,35 @@ function branch_squashed() {
     fi
 }
 
+# Check if the branch is not tracked to a branch on the remote
+# Usage: branch_untracked "branch_name"
+function branch_untracked() {
+    local refname=$1
+
+    # from the local branch, find the supposid tracked branch name on the remote
+    # if the branch is untracked, this will be empty
+    if [ -z "$(git config --get "branch.$refname.merge")" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if the branch is tracked to a branch that no longer exists on the remote
+# Usage: branch_untracked "branch_name"
+function branch_untracked_dead() {
+    local refname=$1
+
+    # get the tracked branch name. this will throw an error if the branch no longer exists on the remote
+    if ! git rev-parse --abbrev-ref --symbolic-full-name "${refname}@{upstream}" 2>/dev/null >/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
 function scan_branches_for_deletion() {
-    local RELEASE_BRANCH_COMMIT ALL_BRANCHES
+    local ALL_BRANCHES
 
     # pull all local branches (exclude RELEASE_BRANCH)
     ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
@@ -197,7 +229,6 @@ function scan_branches_for_deletion() {
     local IGNORED_BRANCHES=("master" "$RELEASE_BRANCH")
 
     # TODO: detect branches that are many many commits behind master
-    # TODO: detect branches that have no remote branch (not tracked)
 
     for refname in "${ALL_BRANCHES[@]}"; do
         # check if the branch is a whitelisted one. if so, then skip it
@@ -214,6 +245,10 @@ function scan_branches_for_deletion() {
         elif branch_squashed "$refname"; then
             print_branch_list_item "squashed" "$refname"
             MERGED_BRANCHES+=("$refname")
+        elif branch_untracked "$refname"; then
+            print_branch_list_item "untracked" "$refname"
+        elif branch_untracked_dead "$refname"; then
+            print_branch_list_item "stale" "$refname"
         else
             print_branch_list_item "not merged" "$refname"
         fi
