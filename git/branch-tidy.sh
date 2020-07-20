@@ -9,11 +9,12 @@ set -e
 # or have been squashed into a single merge commit
 # into master then prompt to delete them or all of them
 #
-# Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin]
+# Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v]
 # Options:
 # -C specify path to local repo. When omitted the current directory is used
 # -b specify the primary branch to compare against. When omitted 'master' is used
 # -r specify the primary remote to compare again. When omitted 'origin' is used
+# -v enabled verbose output, primarily useful for debugging this script itself
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -212,7 +213,7 @@ function main() {
     PRIMARY_REMOTE="origin"
     RELEASE_BRANCH="master"
 
-    while getopts ":hC:b:r:" opt; do
+    while getopts ":vhC:b:r:" opt; do
         case "${opt}" in
         C)
             GIT_DIR="$OPTARG"
@@ -225,6 +226,9 @@ function main() {
             ;;
         h)
             echo -e "Usage:\nbranch-tidy.sh [-C path/to/repo] [-b master]" && exit 0
+            ;;
+        v)
+            set -x
             ;;
         \?)
             echo "Invalid Option: -$OPTARG" 1>&2
