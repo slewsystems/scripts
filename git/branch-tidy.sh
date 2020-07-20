@@ -9,12 +9,11 @@ set -e
 # or have been squashed into a single merge commit
 # into master then prompt to delete them or all of them
 #
-# Usage: branch-tidy.sh [-C $(pwd)] [-b master]
-# Examples:
-# ../branch-tidy.sh
-# branch-tidy.sh -C path/to-repo
-# branch-tidy.sh -C path/to-repo -b develop
-# yes y | branch-tidy.sh -C path/to-repo
+# Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin]
+# Options:
+# -C specify path to local repo. When omitted the current directory is used
+# -b specify the primary branch to compare against. When omitted 'master' is used
+# -r specify the primary remote to compare again. When omitted 'origin' is used
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -134,7 +133,7 @@ function ensure_requirements() {
 
 function fetch_branches() {
     echo_info "Fetching $RELEASE_BRANCH (and pruning)..."
-    if ! git fetch -q origin "$RELEASE_BRANCH" --update-head-ok --prune; then
+    if ! git fetch -q "$PRIMARY_REMOTE" "$RELEASE_BRANCH" --update-head-ok --prune; then
         echo_error "Could not fetch $RELEASE_BRANCH"
         return 1
     fi
@@ -210,15 +209,19 @@ function main() {
     local GIT_DIR opt
 
     GIT_DIR=$(pwd)
+    PRIMARY_REMOTE="origin"
     RELEASE_BRANCH="master"
 
-    while getopts ":hC:b:" opt; do
+    while getopts ":hC:b:r:" opt; do
         case "${opt}" in
         C)
             GIT_DIR="$OPTARG"
             ;;
         b)
             RELEASE_BRANCH="$OPTARG"
+            ;;
+        r)
+            PRIMARY_REMOTE="$OPTARG"
             ;;
         h)
             echo -e "Usage:\nbranch-tidy.sh [-C path/to/repo] [-b master]" && exit 0
