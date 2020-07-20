@@ -142,6 +142,25 @@ function fetch_branches() {
     fi
 }
 
+# Check if the branch has been merged into the RELEASE_BRANCH via merge commit
+# Usage: branch_merged "branch_name"
+function branch_merged() {
+    local refname=$1
+
+    # list out merged branches from RELEASE_BRANCH, but only look at the curent branch
+    # and ignore RELEASE_BRANCH itself. pretty much: if this returns nothing then no
+    # merged branches (this branch) are merged. if there is a return value then
+    # thats means this branch is merged via a merge commit.
+    merged_branch=$(git branch --merged="$RELEASE_BRANCH" --contains="$refname" --no-contains="$RELEASE_BRANCH")
+
+    # if the output is empty, then the branch is merged
+    if [ -n "$merged_branch" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function scan_branches_for_deletion() {
     local RELEASE_BRANCH_COMMIT ALL_BRANCHES
 
@@ -163,15 +182,9 @@ function scan_branches_for_deletion() {
             continue
         fi
 
-        # list out merged branches from RELEASE_BRANCH, but only look at the curent branch
-        # and ignore RELEASE_BRANCH itself. pretty much: if this returns nothing then no
-        # merged branches (this branch) are merged. if there is a return value then
-        # thats means this branch is merged via a merge commit.
-        merged_branch=$(git branch --merged="$RELEASE_BRANCH" --contains="$refname" --no-contains="$RELEASE_BRANCH")
-
         # lets check if the branch is merged into latest master.
         # if not then lets check if the branch has been squashed into master
-        if [ -n "$merged_branch" ]; then
+        if branch_merged "$refname"; then
             print_branch_list_item "merged" "$refname"
             MERGED_BRANCHES+=("$refname")
         else
