@@ -150,14 +150,15 @@ function scan_branches_for_deletion() {
     ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
     local MERGED_BRANCHES=()
-    local WHITELIST_BRANCHES=("master" "$RELEASE_BRANCH")
+    local IGNORED_BRANCHES=("master" "$RELEASE_BRANCH")
 
     # TODO: detect branches that are many many commits behind master
     # TODO: detect branches that have no remote branch (not tracked)
 
     # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do
-        if list_contains "${WHITELIST_BRANCHES[*]}" "$refname"; then
+        # check if the branch is a whitelisted one. if so, then skip it
+        if list_contains "${IGNORED_BRANCHES[*]}" "$refname"; then
             print_branch_list_item "ignored" "$refname"
             continue
         fi
