@@ -207,8 +207,8 @@ function branch_untracked() {
 }
 
 # Check if the branch is tracked to a branch that no longer exists on the remote
-# Usage: branch_untracked "branch_name"
-function branch_untracked_dead() {
+# Usage: branch_tracked_dead "branch_name"
+function branch_tracked_dead() {
     local refname=$1
 
     # get the tracked branch name. this will throw an error if the branch no longer exists on the remote
@@ -225,7 +225,7 @@ function scan_branches_for_deletion() {
     # pull all local branches (exclude RELEASE_BRANCH)
     ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
-    local MERGED_BRANCHES=()
+    local DELETABLE_BRANCHES=()
     local IGNORED_BRANCHES=("master" "$RELEASE_BRANCH")
 
     # TODO: detect branches that are many many commits behind master
@@ -241,30 +241,32 @@ function scan_branches_for_deletion() {
         # if not then lets check if the branch has been squashed into master
         if branch_merged "$refname"; then
             print_branch_list_item "merged" "$refname"
-            MERGED_BRANCHES+=("$refname")
+            DELETABLE_BRANCHES+=("$refname")
         elif branch_squashed "$refname"; then
             print_branch_list_item "squashed" "$refname"
-            MERGED_BRANCHES+=("$refname")
+            DELETABLE_BRANCHES+=("$refname")
         elif branch_untracked "$refname"; then
             print_branch_list_item "untracked" "$refname"
-        elif branch_untracked_dead "$refname"; then
+            # we wont delete untracked branches
+        elif branch_tracked_dead "$refname"; then
             print_branch_list_item "stale" "$refname"
+            DELETABLE_BRANCHES+=("$refname")
         else
             print_branch_list_item "not merged" "$refname"
         fi
     done
 
-    if [ ${#MERGED_BRANCHES[@]} -eq 0 ]; then
-        echo_success "No merged/squashed branches found. Well done!"
+    if [ ${#DELETABLE_BRANCHES[@]} -eq 0 ]; then
+        echo_success "No merged/squashed or stale branches found. Well done!"
         exit 0
     fi
 
-    if [ "$AUTO_YES" = true ] | ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
-        for refname in "${MERGED_BRANCHES[@]}"; do
+    if [ "$AUTO_YES" = true ] | ask "Delete all ${#DELETABLE_BRANCHES[@]} merged/squashed or stale branches?" "N"; then
+        for refname in "${DELETABLE_BRANCHES[@]}"; do
             destroy_branch "$refname"
         done
     else
-        for refname in "${MERGED_BRANCHES[@]}"; do
+        for refname in "${DELETABLE_BRANCHES[@]}"; do
             prompt_destroy_branch "$refname" "N"
         done
     fi
