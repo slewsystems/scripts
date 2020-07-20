@@ -118,13 +118,6 @@ function destroy_branch() {
     fi
 }
 
-function sanity_check_directory() {
-    if ! [ -d "$GIT_DIR/.git" ]; then
-        echo_error "Directory is not a git repository"
-        return 1
-    fi
-}
-
 # Check to make sure required dependencies are available
 function ensure_requirements() {
     if ! [ -x "$(command -v git)" ]; then
@@ -252,8 +245,6 @@ function main() {
     ensure_git_repo || exit 1
 
     echo_soft_warn "Comparing against branch: $RELEASE_BRANCH"
-
-    sanity_check_directory || exit 1
 
     INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
