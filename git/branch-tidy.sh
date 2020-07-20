@@ -9,12 +9,13 @@ set -e
 # or have been squashed into a single merge commit
 # into master then prompt to delete them or all of them
 #
-# Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v]
+# Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v] [-y]
 # Options:
 # -C specify path to local repo. When omitted the current directory is used
 # -b specify the primary branch to compare against. When omitted 'master' is used
 # -r specify the primary remote to compare again. When omitted 'origin' is used
-# -v enabled verbose output, primarily useful for debugging this script itself
+# -v enable verbose output, primarily useful for debugging this script itself
+# -y auto response 'yes' to prompts
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -196,7 +197,7 @@ function scan_branches_for_deletion() {
         exit 0
     fi
 
-    if ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
+    if [ "$AUTO_YES" = true ] | ask "Delete all ${#MERGED_BRANCHES[@]} merged/squashed branches?" "N"; then
         for refname in "${MERGED_BRANCHES[@]}"; do
             destroy_branch "$refname"
         done
@@ -213,8 +214,9 @@ function main() {
     GIT_DIR=$(pwd)
     PRIMARY_REMOTE="origin"
     RELEASE_BRANCH="master"
+    AUTO_YES=false
 
-    while getopts ":vhC:b:r:" opt; do
+    while getopts ":vyhC:b:r:" opt; do
         case "${opt}" in
         C)
             GIT_DIR="$OPTARG"
@@ -230,6 +232,9 @@ function main() {
             ;;
         v)
             set -x
+            ;;
+        y)
+            AUTO_YES=true
             ;;
         \?)
             echo "Invalid Option: -$OPTARG" 1>&2
