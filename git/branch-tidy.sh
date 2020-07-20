@@ -5,9 +5,9 @@ set -e
 # Author: Brandon Patram
 # Date: 2018-08-13
 #
-# Description: Find local branches that are merged
-# or have been squashed into a single merge commit
-# into master then prompt to delete them or all of them
+# Description: Find local branches that are merged, have been squashed into
+# a single commit or branches that have been deleted on the remote and then
+# prompt to delete them or all of them.
 #
 # Usage: branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v] [-y]
 # Options:

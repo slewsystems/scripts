@@ -17,9 +17,9 @@ General purpose scripts to automate common tasks.
 
 `branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v] [-y]`
 
-Find local branches that are merged (or have been squashed into a single merge commit) into master then prompt to delete them or all of them.
+Find local branches that are merged (or have been squashed into a single merge commit) into master or branches which have been removed on the remote and then prompt to delete some or all of them.
 
-This is useful when you are merging PRs from another service (Github, etc) and want to also clean up your local branches that are completed (merged). If you use squash commit merges then this script becomes increasingly helpful as it can check for squashed branches too.
+This is useful when you are merging PRs from another service (GitHub, etc) and want to also clean up your local branches that are completed (merged). If you use squash commit merges then this script becomes increasingly helpful as it can check for squashed branches too. If you have configured GitHub to delete your branch after merging or deleting, this will also work with that too, as those branches are considered "stale."
 
 #### Example Output
 
