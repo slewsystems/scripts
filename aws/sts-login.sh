@@ -8,6 +8,10 @@
 # postfixed with '-mfa' for your sts session.
 #
 # Usage: sts-login.sh -t "MFA_TOKEN_CODE" -s "arn:aws:iam:MFA_ARN/USERNAME" [-p PROFILE_NAME="default"]
+# Options:
+# -t specify the current MFA rotating code
+# -s specify your ARN user
+# -p optionally specify a profile name. This is useful if you are switching between multiple AWS accounts. Uses 'default' if omitted
 # ---------------------------
 
 SILENCE=false

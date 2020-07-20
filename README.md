@@ -8,12 +8,14 @@ General purpose scripts to automate common tasks.
   - [`glob-changed-files`](#glob-changed-filessh)
 - Plantuml
   - [`_default_styles`](#_default_stylespuml)
+- AWS
+  - [`sts-login.sh`](#sts-loginsh)
 
 ## Git
 
 ### `branch-tidy.sh`
 
-`branch-tidy.sh [path_to_repo=$(pwd)]`
+`branch-tidy.sh [-C $(pwd)] [-b master] [-r origin] [-v] [-y]`
 
 Find local branches that are merged (or have been squashed into a single merge commit) into master then prompt to delete them or all of them.
 
@@ -29,7 +31,7 @@ _NOTE: Please ignore that the script was renamed in the screenshot_
 
 Use the `extern-branch-tidy.sh` file. This will run a JSX command to create a new terminal session and execute the shell script then exit the session.
 
-This is useful for tools like [Fork](https://git-fork.com/) wher you can invoke custom scripts but doesn't support user input. Spawing a terminal window is a way to work around that limitation.
+This is useful for tools like [Fork](https://git-fork.com/) where you can invoke custom scripts but doesn't support user input. Spawning a terminal window is a way to work around that limitation.
 
 ### `inplace-pull.sh`
 
@@ -135,4 +137,6 @@ has_one(items_progress_report_caches, items)
 
 ### `sts-login.sh`
 
-Login to AWS CLI using a MFA device.
+`sts-login.sh -t "MFA_TOKEN_CODE" -s "arn:aws:iam:MFA_ARN/USERNAME" [-p PROFILE_NAME="default"]`
+
+Easily login to AWS CLI using a MFA device (2FA) without the hassle.
