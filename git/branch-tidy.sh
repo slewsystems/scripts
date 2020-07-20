@@ -125,9 +125,17 @@ function sanity_check_directory() {
     fi
 }
 
+# Check to make sure required dependencies are available
 function ensure_requirements() {
     if ! [ -x "$(command -v git)" ]; then
         echo_error "Missing git command. To install run: brew install git"
+        return 1
+    fi
+}
+
+function ensure_git_repo() {
+    if ! [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]; then
+        echo_error "Directory is not a git repo"
         return 1
     fi
 }
@@ -237,10 +245,12 @@ function main() {
         esac
     done
 
-    ensure_requirements || exit 1
-
     cd "$GIT_DIR" || exit 1
     echo_soft_warn "Running in directory: $PWD"
+
+    ensure_requirements || exit 1
+    ensure_git_repo || exit 1
+
     echo_soft_warn "Comparing against branch: $RELEASE_BRANCH"
 
     sanity_check_directory || exit 1
