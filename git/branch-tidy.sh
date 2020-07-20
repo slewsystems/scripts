@@ -161,10 +161,35 @@ function branch_merged() {
     fi
 }
 
+# Check if the branch has been squshed into the RELEASE_BRANCH via a squash commit
+# Usage: branch_squashed "branch_name"
+function branch_squashed() {
+    local refname=$1
+    local release_branch_commit
+
+    # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
+
+    release_branch_commit=$(git rev-parse "$RELEASE_BRANCH")
+
+    # find commit on master that this branch branched from or the common ancestor
+    merge_base=$(git merge-base "$release_branch_commit" "$refname")
+    # get tree hash ref of branch
+    tree=$(git rev-parse "$refname^{tree}")
+    # create a temporary dangling commit... we will use this to compare to commits in master
+    commit_tree=$(git commit-tree "$tree" -p "$merge_base" -m _)
+    # does this commit exist in commit history?
+    cherry_commit=$(git cherry "$RELEASE_BRANCH" "$commit_tree")
+
+    if [[ $cherry_commit == "-"* ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function scan_branches_for_deletion() {
     local RELEASE_BRANCH_COMMIT ALL_BRANCHES
 
-    RELEASE_BRANCH_COMMIT=$(git rev-parse "$RELEASE_BRANCH")
     # pull all local branches (exclude RELEASE_BRANCH)
     ALL_BRANCHES=($(git for-each-ref refs/heads/ "--format=%(refname:short)" --no-contains="$RELEASE_BRANCH"))
 
@@ -174,7 +199,6 @@ function scan_branches_for_deletion() {
     # TODO: detect branches that are many many commits behind master
     # TODO: detect branches that have no remote branch (not tracked)
 
-    # thank you: https://github.com/not-an-aardvark/git-delete-squashed#sh
     for refname in "${ALL_BRANCHES[@]}"; do
         # check if the branch is a whitelisted one. if so, then skip it
         if list_contains "${IGNORED_BRANCHES[*]}" "$refname"; then
@@ -187,22 +211,11 @@ function scan_branches_for_deletion() {
         if branch_merged "$refname"; then
             print_branch_list_item "merged" "$refname"
             MERGED_BRANCHES+=("$refname")
+        elif branch_squashed "$refname"; then
+            print_branch_list_item "squashed" "$refname"
+            MERGED_BRANCHES+=("$refname")
         else
-            # find commit on master that this branch branched from or the common ancestor
-            merge_base=$(git merge-base "$RELEASE_BRANCH_COMMIT" "$refname")
-            # get tree hash ref of branch
-            tree=$(git rev-parse "$refname^{tree}")
-            # create a temporary dangling commit... we will use this to compare to commits in master
-            commit_tree=$(git commit-tree "$tree" -p "$merge_base" -m _)
-            # does this commit exist in commit history?
-            cherry_commit=$(git cherry "$RELEASE_BRANCH" "$commit_tree")
-
-            if [[ $cherry_commit == "-"* ]]; then
-                print_branch_list_item "squashed" "$refname"
-                MERGED_BRANCHES+=("$refname")
-            else
-                print_branch_list_item "not merged" "$refname"
-            fi
+            print_branch_list_item "not merged" "$refname"
         fi
     done
 
