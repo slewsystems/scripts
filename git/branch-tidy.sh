@@ -108,7 +108,7 @@ function destroy_branch() {
     # so lets check if we are on that branch, if so
     # attempt to checkout master and then try to delete
     if [ "$current_branch_name" == "$branch_name" ]; then
-        echo_warn "You are on this branch so it cannot be deleted."
+        echo_warn "Could not delete branch, $branch_name since it is currently checked out."
         if ask "Checkout $release_branch and try again?"; then
             if ! git checkout -q "$release_branch"; then
                 echo_error "Could not checkout $RELEASE_BRANCH. $branch_name will not be deleted"
