@@ -7,7 +7,8 @@ General purpose scripts to automate common tasks.
   - [`inplace-pull`](#inplace-pullsh)
   - [`glob-changed-files`](#glob-changed-filessh)
 - Plantuml
-  - [`_default_styles`](#_default_stylespuml)
+  - [`ss_std`](#ss_stdpuml-for-plantuml-v2020-and-later) (current, post-v2020)
+  - [`_default_styles`](#_default_stylespuml-for-plantuml-v2020-and-before) (pre-v2020)
 - AWS
   - [`sts-login.sh`](#sts-loginsh)
 
