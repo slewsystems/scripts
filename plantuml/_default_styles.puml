@@ -1,4 +1,7 @@
 @startuml
+' NOTICE: This document is for older versions of PlantUML before the updated
+' preprocessor introduced procs, functions, and variables! If you are using
+' a current version of PlantUML include styles.puml instead.
 !pragma teoz true
 
 !define TODAY %date[yyyy-MM-dd]%
