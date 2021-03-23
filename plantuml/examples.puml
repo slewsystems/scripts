@@ -1,0 +1,191 @@
+' This document is just meant for generating the example screenshots in this repo.
+' It's primary purpose is for testing changes and use cases of the default_styles.
+' Use this as an example if the documentation is insufficient or for a quick copy-paste.
+
+@startuml example_activity
+    !include ./styles.puml
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $use_std_styles()
+    $use_activity_styles()
+
+    $add_std_info("Activity Diagram Styling")
+
+    |Swimlane1|
+    start
+    :foo;
+    if (foo?) then (yes)
+    :bar;
+    endif
+    :baz;
+    note right
+        Test note
+    end note
+    fork
+        |Swimlane1|
+        :qux;
+    fork again
+        |Swimlane2|
+        :quux;
+    end fork
+    |Swimlane1|
+    end
+@enduml
+
+@startuml example_sequence
+    !include ./styles.puml
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $use_std_styles()
+    $use_sequence_styles()
+
+    $add_std_info("Sequence Diagram Styling")
+
+    participant participant as Foo
+    actor       actor       as Foo1
+    boundary    boundary    as Foo2
+    control     control     as Foo3
+    entity      entity      as Foo4
+    database    database    as Foo5
+    collections collections as Foo6
+    queue       queue       as Foo7
+    Foo -> Foo1 : To actor
+    alt BoundaryCase
+    Foo -> Foo2 : To boundary
+    activate Foo2
+    end
+    group ControlGroup
+    Foo -> Foo3 : To control
+    activate Foo3
+    end
+    note left: Left note
+    Foo -> Foo4 : To entity
+    deactivate Foo2
+    ... Delay ...
+    Foo -> Foo5 : To database
+    == Section Title ==
+    Foo -> Foo6 : To collections
+    Foo6 --> Foo : Back to actor
+    |||
+    Foo -> Foo7: To queue
+@enduml
+
+@startuml example_state
+    !include ./styles.puml
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $use_std_styles()
+    $use_state_styles()
+
+    $add_std_info("State Diagram Styling")
+
+    [*] --> Todo
+
+    state Todo<<todo>> {
+        [*] --> Idle
+        Idle --> InProgress : EvConfig
+        Configuring --> Idle : EvConfig
+    }
+    Todo : Some description text here
+
+    state InProgress<<inprogress>> {
+        [*] --> NewValueSelection
+        NewValueSelection --> NewValuePreview : EvNewValue
+        NewValuePreview --> NewValueSelection : EvNewValueRejected
+        NewValuePreview --> NewValueSelection : EvNewValueSaved
+
+        state NewValuePreview {
+            State1 -> State2
+        }
+        ||
+        [*] --> OtherState
+        OtherState --> [*]
+    }
+
+    state Finished<<done>>
+
+    InProgress --> Finished
+@enduml
+
+@startuml example_class
+    !include ./styles.puml
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $use_std_styles()
+    $use_class_styles()
+
+    $add_std_info("Class Diagram Styling")
+
+    abstract class AbstractList
+    abstract AbstractCollection
+    interface List
+    interface Collection
+
+    List <|-- AbstractList
+    Collection <|-- AbstractCollection
+
+    Collection <|- List
+    AbstractCollection <|- AbstractList
+    AbstractList <|-- ArrayList
+
+    class ArrayList {
+        Object[] elementData
+        size()
+    }
+
+    enum TimeUnit {
+        DAYS
+        HOURS
+        MINUTES
+    }
+
+    annotation SuppressWarnings
+
+    annotation Annotation {
+        annotation with members
+        String foo()
+        String bar()
+    }
+@enduml
+
+@startuml example_erd
+    !include ./styles.puml
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $use_std_styles()
+    $use_er_styles()
+
+    $add_std_info("ER Diagram Styling")
+
+    enum_mapping(REPORT_STATUS_ENUM, INT(11)) {
+        incomplete: 0
+        complete: 1
+        not_applicable: 2
+    }
+
+    table(items) {
+        column_pk()
+        omitted_columns()
+    }
+
+    table(items_progress_report_caches) {
+        column_pk()
+        timestamps()
+        column_fk(item_id)
+
+        column_non_nullable(photos_uploaded, REPORT_STATUS_ENUM)
+        column_non_nullable(photo_editing_work, REPORT_STATUS_ENUM)
+    }
+
+    has_one(items_progress_report_caches, items)
+@enduml
