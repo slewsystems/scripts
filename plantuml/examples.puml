@@ -3,15 +3,13 @@
 ' Use this as an example if the documentation is insufficient or for a quick copy-paste.
 
 @startuml example_activity
-    !include ./styles.puml
+    !include ./ss_std.puml
+    !$title = "Activity Diagram Styling"
     !$company_name = "ACME Corp"
     !$author_name = "John Smith"
     !$revision_name = "2"
 
-    $use_std_styles()
-    $use_activity_styles()
-
-    $add_std_info("Activity Diagram Styling")
+    $setup_std_diagram_for("activity")
 
     |Swimlane1|
     start
@@ -35,15 +33,13 @@
 @enduml
 
 @startuml example_sequence
-    !include ./styles.puml
+    !include ./ss_std.puml
+    !$title = "Sequence Diagram Styling"
     !$company_name = "ACME Corp"
     !$author_name = "John Smith"
     !$revision_name = "2"
 
-    $use_std_styles()
-    $use_sequence_styles()
-
-    $add_std_info("Sequence Diagram Styling")
+    $setup_std_diagram_for("sequence")
 
     participant participant as Foo
     actor       actor       as Foo1
@@ -75,15 +71,13 @@
 @enduml
 
 @startuml example_state
-    !include ./styles.puml
+    !include ./ss_std.puml
+    !$title = "State Diagram Styling"
     !$company_name = "ACME Corp"
     !$author_name = "John Smith"
     !$revision_name = "2"
 
-    $use_std_styles()
-    $use_state_styles()
-
-    $add_std_info("State Diagram Styling")
+    $setup_std_diagram_for("state")
 
     [*] --> Todo
 
@@ -114,15 +108,13 @@
 @enduml
 
 @startuml example_class
-    !include ./styles.puml
+    !include ./ss_std.puml
+    !$title = "Class Diagram Styling"
     !$company_name = "ACME Corp"
     !$author_name = "John Smith"
     !$revision_name = "2"
 
-    $use_std_styles()
-    $use_class_styles()
-
-    $add_std_info("Class Diagram Styling")
+    $setup_std_diagram_for("class")
 
     abstract class AbstractList
     abstract AbstractCollection
@@ -157,15 +149,13 @@
 @enduml
 
 @startuml example_erd
-    !include ./styles.puml
+    !include ./ss_std.puml
+    !$title = "ER Diagram Styling"
     !$company_name = "ACME Corp"
     !$author_name = "John Smith"
     !$revision_name = "2"
 
-    $use_std_styles()
-    $use_er_styles()
-
-    $add_std_info("ER Diagram Styling")
+    $setup_std_diagram_for("er")
 
     enum_mapping(REPORT_STATUS_ENUM, INT(11)) {
         incomplete: 0

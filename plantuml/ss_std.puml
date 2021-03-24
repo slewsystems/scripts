@@ -14,20 +14,19 @@
 ' ===
 
 !$today = %date("yyyy-MM-dd")
+!$confidential = %true()
+!$title = "[Untitled] (set $title)"
 ' !$revision_name = "1"
 ' !$author_name = "Your Name"
 ' !$company_name = "Where you work"
 
 !procedure $add_std_header()
     !$header = ""
-    !if (%variable_exists("$company_name"))
-        !$header = $header + $company_name + "\n"
-    !endif
     !if (%variable_exists("$author_name"))
-        !$header = $header + $author_name + "\n"
+        !$header = $header + "Author: " + $author_name + "\n"
     !endif
     !if (%variable_exists("$revision_name"))
-        !$header = $header + "Rev. " + $revision_name + "\n"
+        !$header = $header + $title + " Rev. " + $revision_name + "\n"
     !endif
 
     !$header = $header + "Rendered on " + $today
@@ -36,22 +35,26 @@
 !endprocedure
 
 !procedure $add_std_footer()
-    !$footer = "Confidential"
+    !$footer = ""
+    !if ($confidential == %true())
+        skinparam FooterFontColor red
+        !$footer = $footer + "Confidential"
+    !endif
     !if (%variable_exists("$company_name"))
         !$footer = $footer + " - " + $company_name
     !endif
     footer "\n$footer"
 !endprocedure
 
-!procedure $add_std_title($title)
+!procedure $add_std_title()
     ' simply an alias for consistency sake with header and footer
     title "$title"
 !endprocedure
 
-!procedure $add_std_info($title)
+!procedure $add_std_info()
     $add_std_header()
     $add_std_footer()
-    $add_std_title($title)
+    $add_std_title()
 !endprocedure
 
 
@@ -90,14 +93,6 @@
         BorderColor LightGrey
     }
 !endprocedure
-
-!procedure $apply_std_styles($style_name)
-    !$diagram_style_proc_name = "$apply_" + $style_name + "_styles"
-    $apply_std_style()
-    !assert %function_exists($diagram_style_proc_name) : "Could not apply styles for '" + $style_name + "'. Typo?"
-    %invoke_procedure($diagram_style_proc_name)
-!endprocedure
-
 
 ' Diagram specific styles (should follow $apply_*_styles() naming convention)
 
@@ -298,6 +293,15 @@
 ' ===
 ' Slewsystems Library Macros/Procs
 ' ===
+
+!procedure $setup_std_diagram_for($style_name)
+    !$diagram_style_proc_name = "$apply_" + $style_name + "_styles"
+    !assert %function_exists($diagram_style_proc_name) : "Could not apply styles for '" + $style_name + "'. Typo?"
+
+    $apply_std_style()
+    %invoke_procedure($diagram_style_proc_name)
+    $add_std_info()
+!endprocedure
 
 !define PK_TYPE INTEGER(11)
 

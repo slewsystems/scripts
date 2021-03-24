@@ -75,43 +75,41 @@ You can include this file into your Plantuml diagrams to opt into some better lo
 ```
 @startuml
 !include https://raw.githubusercontent.com/slewsystems/scripts/master/plantuml/ss_std.puml
-
+!$title = "My Diagram"
 !$company_name = "ACME Corp"
 !$author_name = "John Smith"
 !$revision_name = "1"
 
-$apply_std_styles("<diagram-type>") ' sequence, activity, sequence, state, class, er
-$add_std_info("My Diagram")
-
+$setup_std_diagram_for("<diagram-type>") ' sequence, activity, sequence, state, class, er
 
 ' Diagram stuff here!
 
 @enduml
 ```
 
-| Procedure/Variables                 | Purpose                                                                |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| `$apply_std_styles("diagram type")` | Adds default styles to your diagram (see diagram styles section below) |
-| `$use_word_wrap()`                  | Apply word wrapping to long text                                       |
-| `$add_std_info("Diagram Title")`    | Apply the standard header, title, and footer                           |
-| `$author_name`                      | Variable for storing Author name, used in standard header and titles   |
-| `$company_name`                     | Variable for storing Company name, used in standard header and footer  |
-| `$revision_name`                    | Variable for storing diagram Revision, used in standard header         |
+| Procedure/Variables                      | Purpose                                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| `$setup_std_diagram_for("diagram type")` | Adds default styles to your diagram (see diagram styles section below)                 |
+| `$use_word_wrap()`                       | Apply word wrapping to long text                                                       |
+| `$title`                                 | Variable for storing Title name, used in standard header and title                     |
+| `$author_name`                           | Variable for storing Author name, used in standard header and titles                   |
+| `$company_name`                          | Variable for storing Company name, used in standard header and footer                  |
+| `$revision_name`                         | Variable for storing diagram Revision, used in standard header                         |
+| `$confidential`                          | Either `%true()` or `%false()` (default is true). Will append "Condifential" to footer |
 
 #### Supported diagram styles
 
-When calling `$apply_std_styles` you must pass in a diagram type name as the first argument in order to apply the correct styles for that diagram type. The current possible diagram types you can style are:
+When calling `$setup_std_diagram_for` you must pass in a diagram type name as the first argument in order to apply the correct styles for that diagram type. The current possible diagram types you can style are:
 
-- `$apply_std_styles("sequence")`
-- `$apply_std_styles("activity")`
-- `$apply_std_styles("sequence")`
-- `$apply_std_styles("state")`
-- `$apply_std_styles("class")`
-- `$apply_std_styles("er")`
+- `$setup_std_diagram_for("sequence")`
+- `$setup_std_diagram_for("activity")`
+- `$setup_std_diagram_for("sequence")`
+- `$setup_std_diagram_for("state")`
+- `$setup_std_diagram_for("class")`
+- `$setup_std_diagram_for("er")`
 
 #### Some gotchas
 
-- Call `$add_std_info(...)` _after_ calling `$apply_std_styles(...)`
 - Set your document variables _before_ calling `$add_std_info(...)`
 
 ### `_default_styles.puml` (for PlantUML v2020 and before)
