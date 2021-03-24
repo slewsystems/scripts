@@ -70,7 +70,7 @@
 ' Styling
 ' ===
 
-!procedure $use_std_styles()
+!procedure $apply_std_style()
     skinparam arrowColor Black
     skinparam shadowing false
     skinparam padding 2
@@ -91,7 +91,17 @@
     }
 !endprocedure
 
-!procedure $use_activity_styles()
+!procedure $apply_std_styles($style_name)
+    !$diagram_style_proc_name = "$use_" + $style_name + "_styles"
+    $apply_std_style()
+    !assert %function_exists($diagram_style_proc_name) : "Could not apply styles for '" + $style_name + "'. Typo?"
+    %invoke_procedure("$apply_" + $style_name + "_styles")
+!endprocedure
+
+
+' Diagram specific styles (should follow $apply_*_styles() naming convention)
+
+!procedure $apply_activity_styles()
     skinparam Activity {
         ' should mimic state styling
         FontStyle Normal
@@ -116,7 +126,7 @@
     }
 !endprocedure
 
-!procedure $use_sequence_styles()
+!procedure $apply_sequence_styles()
     skinparam BoxPadding 20
 
     skinparam Sequence {
@@ -196,7 +206,7 @@
     }
 !endprocedure
 
-!procedure $use_state_styles()
+!procedure $apply_state_styles()
     hide empty description
     skinparam State {
         BackgroundColor GhostWhite
@@ -223,7 +233,7 @@
     }
 !endprocedure
 
-!procedure $use_class_styles()
+!procedure $apply_class_styles()
     skinparam packageStyle Frame
 
     skinparam Class {
@@ -254,7 +264,7 @@
     }
 !endprocedure
 
-!procedure $use_er_styles()
+!procedure $apply_er_styles()
     ' https://github.com/plantuml/plantuml/pull/31
     hide circle
     hide empty members
