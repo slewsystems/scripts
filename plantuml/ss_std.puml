@@ -92,10 +92,10 @@
 !endprocedure
 
 !procedure $apply_std_styles($style_name)
-    !$diagram_style_proc_name = "$use_" + $style_name + "_styles"
+    !$diagram_style_proc_name = "$apply_" + $style_name + "_styles"
     $apply_std_style()
     !assert %function_exists($diagram_style_proc_name) : "Could not apply styles for '" + $style_name + "'. Typo?"
-    %invoke_procedure("$apply_" + $style_name + "_styles")
+    %invoke_procedure($diagram_style_proc_name)
 !endprocedure
 
 
