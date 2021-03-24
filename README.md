@@ -110,7 +110,7 @@ When calling `$setup_std_diagram_for` you must pass in a diagram type name as th
 
 #### Some gotchas
 
-- Set your document variables _before_ calling `$add_std_info(...)`
+- Set your document variables _before_ calling `$setup_std_diagram_for(...)`
 
 ### `_default_styles.puml` (for PlantUML v2020 and before)
 
