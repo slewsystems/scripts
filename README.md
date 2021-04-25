@@ -108,6 +108,7 @@ When calling `$setup_std_diagram_for` you must pass in a diagram type name as th
 - `$setup_std_diagram_for("state")`
 - `$setup_std_diagram_for("class")`
 - `$setup_std_diagram_for("er")`
+- `$setup_std_diagram_for("generic")`
 
 #### Some gotchas
 

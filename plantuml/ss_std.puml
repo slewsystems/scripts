@@ -295,6 +295,10 @@
     }
 !endprocedure
 
+!procedure $apply_generic_styles()
+    ' intentionally left blank
+!endprocedure
+
 
 ' ===
 ' Slewsystems Library Macros/Procs
