@@ -164,6 +164,10 @@
 !endprocedure
 
 !procedure $apply_sequence_styles()
+    autonumber
+    autoactivate on
+    hide unlinked
+
     skinparam actorStyle stick
     skinparam style strictuml
     skinparam BoxPadding 20
