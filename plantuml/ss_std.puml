@@ -3,8 +3,8 @@
 ' This is the Slewsystems Standard Library for PlantUML.
 '
 ' This file includes helpers for:
-'  - helpers for consistent titles, footers, and headers
-'  - applying a unified styling design
+'  - adding consistently formatted titles, footers, and headers
+'  - applying a consistent styling to all diagrams
 '  - expanding PlantUML functionality for new diagram types
 '    - ERD
 
@@ -92,6 +92,44 @@
         BorderThickness 1
         BorderColor LightGrey
     }
+
+    skinparam Database {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Boundary {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Control {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Entity {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Collections {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Queue {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Package {
+        ' Should match Sequence.Reference styling
+        HeaderBackgroundColor LightSteelBlue
+        BorderColor LightSteelBlue
+        BorderThickness 1
+        BackgroundColor Transparent
+    }
 !endprocedure
 
 ' Diagram specific styles (should follow $apply_*_styles() naming convention)
@@ -169,36 +207,6 @@
             BorderColor Olive
         }
     }
-
-    skinparam Database {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
-
-    skinparam Boundary {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
-
-    skinparam Control {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
-
-    skinparam Entity {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
-
-    skinparam Collections {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
-
-    skinparam Queue {
-        BackgroundColor GhostWhite
-        BorderColor SlateGrey
-    }
 !endprocedure
 
 !procedure $apply_state_styles()
@@ -248,14 +256,6 @@
             BackgroundColor LightSteelBlue
             BorderColor LightSteelBlue
         }
-    }
-
-    skinparam Package {
-        ' Should match Sequence.Reference styling
-        HeaderBackgroundColor LightSteelBlue
-        BorderColor LightSteelBlue
-        BorderThickness 1
-        BackgroundColor Transparent
     }
 !endprocedure
 
