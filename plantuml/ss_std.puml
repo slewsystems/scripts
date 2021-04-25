@@ -127,6 +127,26 @@
         BorderColor SlateGrey
     }
 
+    skinparam Artifact {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Agent {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Actor {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
+    skinparam Usecase {
+        BackgroundColor GhostWhite
+        BorderColor SlateGrey
+    }
+
     skinparam Package {
         ' Should match Sequence.Reference styling
         HeaderBackgroundColor LightSteelBlue
