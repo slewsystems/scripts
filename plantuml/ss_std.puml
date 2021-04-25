@@ -68,7 +68,7 @@
     skinparam maxMessageSize $width
 !endprocedure
 
-!procedure $use_horizontal_layout
+!procedure $use_horizontal_layout()
     left to right direction
 !endprocedure
 
