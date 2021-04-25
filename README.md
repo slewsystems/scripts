@@ -74,7 +74,7 @@ You can include this file into your Plantuml diagrams to opt into some better lo
 
 ```
 @startuml
-!include https://raw.githubusercontent.com/slewsystems/scripts/master/plantuml/ss_std.puml
+!include_once https://raw.githubusercontent.com/slewsystems/scripts/master/plantuml/ss_std.puml
 !$title = "My Diagram"
 !$company_name = "ACME Corp"
 !$author_name = "John Smith"
