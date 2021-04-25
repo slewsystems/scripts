@@ -80,22 +80,23 @@ You can include this file into your Plantuml diagrams to opt into some better lo
 !$author_name = "John Smith"
 !$revision_name = "1"
 
-$setup_std_diagram_for("<diagram-type>") ' sequence, activity, sequence, state, class, er
+$setup_std_diagram_for("<diagram-type>")
 
 ' Diagram stuff here!
 
 @enduml
 ```
 
-| Procedure/Variables                      | Purpose                                                                                |
-| ---------------------------------------- | -------------------------------------------------------------------------------------- |
-| `$setup_std_diagram_for("diagram type")` | Adds default styles to your diagram (see diagram styles section below)                 |
-| `$use_word_wrap()`                       | Apply word wrapping to long text                                                       |
-| `$title`                                 | Variable for storing Title name, used in standard header and title                     |
-| `$author_name`                           | Variable for storing Author name, used in standard header and titles                   |
-| `$company_name`                          | Variable for storing Company name, used in standard header and footer                  |
-| `$revision_name`                         | Variable for storing diagram Revision, used in standard header                         |
-| `$confidential`                          | Either `%true()` or `%false()` (default is true). Will append "Condifential" to footer |
+| Procedure/Variables              | Purpose                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| `$setup_std_diagram_for("type")` | Adds default styles to your diagram (see diagram styles section below)                 |
+| `$use_word_wrap()`               | Apply word wrapping to long text                                                       |
+| `$use_horizontal_layout()`       | Apply left to right direction (instead of top to bottom)                               |
+| `$title`                         | Variable for storing Title name, used in standard header and title                     |
+| `$author_name`                   | Variable for storing Author name, used in standard header and titles                   |
+| `$company_name`                  | Variable for storing Company name, used in standard header and footer                  |
+| `$revision_name`                 | Variable for storing diagram Revision, used in standard header                         |
+| `$confidential`                  | Either `%true()` or `%false()` (default is true). Will append "Condifential" to footer |
 
 #### Supported diagram styles
 
