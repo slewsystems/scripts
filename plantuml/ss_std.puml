@@ -16,6 +16,7 @@
 !$today = %date("yyyy-MM-dd")
 !$confidential = %true()
 !$title = "[Untitled] (set $title)"
+!$hide_meta = %false()
 ' !$revision_name = "1"
 ' !$author_name = "Your Name"
 ' !$company_name = "Where you work"
@@ -31,7 +32,9 @@
 
     !$header = $header + "Rendered on " + $today
 
-    header "$header"
+    !if ($hide_meta == %false())
+        header "$header"
+    !endif
 !endprocedure
 
 !procedure $add_std_footer()
@@ -43,12 +46,16 @@
     !if (%variable_exists("$company_name"))
         !$footer = $footer + " - " + $company_name
     !endif
-    footer "\n$footer"
+
+    !if ($hide_meta == %false())
+        footer "\n$footer"
+    !endif
 !endprocedure
 
 !procedure $add_std_title()
-    ' simply an alias for consistency sake with header and footer
-    title "$title"
+    !if ($hide_meta == %false())
+        title "$title"
+    !endif
 !endprocedure
 
 !procedure $add_std_info()
@@ -56,7 +63,6 @@
     $add_std_footer()
     $add_std_title()
 !endprocedure
-
 
 ' ===
 ' Styling Helpers
