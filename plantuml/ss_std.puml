@@ -74,6 +74,7 @@
 ' ===
 
 !procedure $apply_std_style()
+    skinparam actorStyle awesome
     skinparam arrowColor Black
     skinparam shadowing false
     skinparam padding 2
@@ -160,6 +161,8 @@
 !endprocedure
 
 !procedure $apply_sequence_styles()
+    skinparam actorStyle stick
+    skinparam style strictuml
     skinparam BoxPadding 20
 
     skinparam Sequence {
