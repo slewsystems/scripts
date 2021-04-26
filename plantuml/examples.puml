@@ -152,7 +152,7 @@
     }
 @enduml
 
-@startuml example_erd
+@startuml example_er
     !include ./ss_std.puml
     !$title = "ER Diagram Styling"
     !$company_name = "ACME Corp"
@@ -182,4 +182,51 @@
     }
 
     has_one(items_progress_report_caches, items)
+@enduml
+
+@startuml example_generic
+    !include ./ss_std.puml
+    !$title = "Generic Diagram Styling"
+    !$company_name = "ACME Corp"
+    !$author_name = "John Smith"
+    !$revision_name = "2"
+
+    $setup_std_diagram_for("generic")
+
+    actor actor
+    actor/ "actor/"
+    agent agent
+    artifact artifact
+    boundary boundary
+    card card
+    circle circle
+    cloud cloud
+    collections collections
+    component component
+    control control
+    database database
+    entity entity
+    file file
+    folder folder [
+        folder description text
+    ]
+    frame frame
+    hexagon hexagon
+    interface interface
+    label label
+    node node<<sterotype>> [
+        node description text
+    ]
+    package package<<sterotype>> [
+        description text
+    ]
+    person person
+    queue queue
+    rectangle rectangle
+    stack stack
+    storage storage
+    usecase usecase [
+        description text
+    ]
+    usecase/ "usecase/"
 @enduml

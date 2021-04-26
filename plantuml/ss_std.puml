@@ -137,6 +137,16 @@
         BorderColor LightGrey
     }
 
+    skinparam Circle {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Interface {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
     skinparam Database {
         BackgroundColor $get_themed_value("bodyBackgroundColor")
         BorderColor $get_themed_value("borderColor")
@@ -183,6 +193,66 @@
     }
 
     skinparam Usecase {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Node {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Folder {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Component {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Cloud {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Frame {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Card {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Rectangle {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Hexagon {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Storage {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Stack {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam Person {
+        BackgroundColor $get_themed_value("bodyBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+    }
+
+    skinparam File {
         BackgroundColor $get_themed_value("bodyBackgroundColor")
         BorderColor $get_themed_value("borderColor")
     }
