@@ -17,6 +17,36 @@
 !$confidential = %true()
 !$title = "[Untitled] (set $title)"
 !$hide_meta = %false()
+!$theme_data ?= {
+    "textFont": "Helvetica",
+    "codeFont": "Menlo",
+    "canvasBackgroundColor": "White",
+    "titleFontSize": 16,
+    "subtitleFontSize": 14,
+    "headerBackgroundColor": "LightSteelBlue",
+    "headerFontColor": "Black",
+    "headerFontStyle": "Bold",
+    "headerFontSize": 13,
+    "bodyBackgroundColor": "GhostWhite",
+    "bodyFontColor": "DarkSlateGrey",
+    "bodyFontSize": 12,
+    "labelFontColor": "Black",
+    "infoFontSize": 10,
+    "enum_headerBackgroundColor": "IndianRed",
+    "enum_bodyBackgroundColor": "LightPink",
+    "enum_borderColor": "DarkRed",
+    "sequenceDivider_headerBackgroundColor": "Khaki",
+    "sequenceDivider_borderColor": "Olive",
+    "note_bodyBackgroundColor": "Khaki",
+    "note_borderColor": "Olive",
+    "note_bodyFontSize": 10,
+    "legend_bodyBackgroundColor": "GhostWhite",
+    "legend_borderColor": "LightGrey",
+    "symbol_borderThickness": 1.5,
+    "borderColor": "DarkSlateGrey",
+    "arrowColor": "Black",
+    "borderThickness": 1.5
+}
 ' !$revision_name = "1"
 ' !$author_name = "Your Name"
 ' !$company_name = "Where you work"
@@ -82,47 +112,16 @@
 ' Styling/Theming
 ' ===
 
-!$theme = {
-    "textFont": "Helvetica",
-    "codeFont": "Menlo",
-    "canvasBackgroundColor": "White",
-    "titleFontSize": 16,
-    "subtitleFontSize": 14,
-    "headerBackgroundColor": "LightSteelBlue",
-    "headerFontColor": "Black",
-    "headerFontStyle": "Bold",
-    "headerFontSize": 13,
-    "bodyBackgroundColor": "GhostWhite",
-    "bodyFontColor": "DarkSlateGrey",
-    "bodyFontSize": 12,
-    "labelFontColor": "Black",
-    "infoFontSize": 10,
-    "enum_headerBackgroundColor": "IndianRed",
-    "enum_bodyBackgroundColor": "LightPink",
-    "enum_borderColor": "DarkRed",
-    "sequenceDivider_headerBackgroundColor": "Khaki",
-    "sequenceDivider_borderColor": "Olive",
-    "note_bodyBackgroundColor": "Khaki",
-    "note_borderColor": "Olive",
-    "note_bodyFontSize": 10,
-    "legend_bodyBackgroundColor": "GhostWhite",
-    "legend_borderColor": "LightGrey",
-    "symbol_borderThickness": 1.5,
-    "borderColor": "DarkSlateGrey",
-    "arrowColor": "Black",
-    "borderThickness": 1.5
-}
-
 !function $get_themed_value($key, $prefix="")
     ' TODO: add assert for key existence (once plantuml adds ability to check)
     ' TODO: fallback to unprefixed key value if no key exists with prefix
 
     !if %strlen($prefix) > 0
         !$prefixed_key = $prefix + "_" + $key
-        !return $theme[$prefixed_key]
+        !return $theme_data[$prefixed_key]
     !endif
 
-    !return $theme[$key]
+    !return $theme_data[$key]
 !endfunction
 
 !procedure $apply_std_style()
