@@ -70,7 +70,7 @@ $ ../glob-changed-files.sh "\\.(scss|css)"
 
 ### `ss_std.puml` (for PlantUML v2020 and later)
 
-You can include this file into your Plantuml diagrams to opt into some better looking styles and some common diagram components. To start using this today in the easier manner you can define your diagram like this
+You can include this file into your Plantuml diagrams to opt into some better looking styles and some common diagram components. To start using this today in the easier manner you can define your diagram like this:
 
 ```
 @startuml
@@ -110,10 +110,6 @@ When calling `$setup_std_diagram_for` you must pass in a diagram type name as th
 - `$setup_std_diagram_for("class")`
 - `$setup_std_diagram_for("er")`
 - `$setup_std_diagram_for("generic")`
-
-#### Some gotchas
-
-- Set your document variables _before_ calling `$setup_std_diagram_for(...)`
 
 ### `_default_styles.puml` (for PlantUML v2020 and before)
 

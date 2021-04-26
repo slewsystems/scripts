@@ -14,9 +14,8 @@
 ' ===
 
 !$today = %date("yyyy-MM-dd")
-!$confidential = %true()
-!$title = "[Untitled] (set $title)"
-!$hide_meta = %false()
+!$confidential ?= %true()
+!$hide_meta ?= %false()
 !$theme_data ?= {
     "textFont": "Helvetica",
     "codeFont": "Menlo",
@@ -47,44 +46,49 @@
     "arrowColor": "Black",
     "borderThickness": 1.5
 }
+
+' !$title = "[Untitled] (set $title)"
 ' !$revision_name = "1"
 ' !$author_name = "Your Name"
 ' !$company_name = "Where you work"
 
 !procedure $add_std_header()
     !$header = ""
-    !if (%variable_exists("$author_name"))
+    !if %variable_exists("$author_name")
         !$header = $header + "Author: " + $author_name + "\n"
     !endif
-    !if (%variable_exists("$revision_name"))
+    !if %variable_exists("$revision_name") && %variable_exists("$title")
         !$header = $header + $title + " Rev. " + $revision_name + "\n"
     !endif
 
     !$header = $header + "Rendered on " + $today
 
-    !if ($hide_meta == %false())
-        header "$header"
+    !if %not($hide_meta)
+        header $header
     !endif
 !endprocedure
 
 !procedure $add_std_footer()
     !$footer = ""
-    !if ($confidential == %true())
+    !if $confidential == %true()
         skinparam FooterFontColor red
         !$footer = $footer + "Confidential"
     !endif
-    !if (%variable_exists("$company_name"))
-        !$footer = $footer + " - " + $company_name
+    !if %variable_exists("$company_name")
+        !if %strlen($footer) > 0
+            !$footer = $footer + " - "
+        !endif
+        !$footer = $footer + $company_name
     !endif
 
-    !if ($hide_meta == %false())
-        footer "\n$footer"
+    !if %not($hide_meta)
+        footer \n$footer
     !endif
 !endprocedure
 
 !procedure $add_std_title()
-    !if ($hide_meta == %false())
-        title "$title"
+    !if %not($hide_meta) && %variable_exists("$title")
+        title $title
     !endif
 !endprocedure
 
@@ -93,6 +97,7 @@
     $add_std_footer()
     $add_std_title()
 !endprocedure
+
 
 ' ===
 ' Styling/Layout Helpers
@@ -538,7 +543,6 @@
 !procedure $setup_std_diagram_for($style_name)
     !$diagram_style_proc_name = "$apply_" + $style_name + "_styles"
     !assert %function_exists($diagram_style_proc_name) : "Could not apply styles for '" + $style_name + "'. Typo?"
-
     $apply_std_style()
     %invoke_procedure($diagram_style_proc_name)
     $add_std_info()
