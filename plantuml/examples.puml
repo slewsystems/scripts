@@ -47,18 +47,22 @@
     control     control     as Foo3
     entity      entity      as Foo4
     database    database    as Foo5
-    collections collections as Foo6
-    queue       queue       as Foo7
+    box Box
+        collections collections as Foo6
+        queue       queue       as Foo7
+    end box
+
     Foo -> Foo1 : To actor
-    alt BoundaryCase
-    Foo -> Foo2 : To boundary
-    activate Foo2
+    alt Alt
+        Foo -> Foo2 : To boundary
+        activate Foo2
     end
-    group ControlGroup
-    Foo -> Foo3 : To control
-    activate Foo3
+    group group
+        Foo -> Foo3 : To control
+        activate Foo3
     end
     note left: Left note
+    ref over Foo : Reference
     Foo -> Foo4 : To entity
     deactivate Foo2
     ... Delay ...
@@ -79,11 +83,8 @@
 
     $setup_std_diagram_for("state")
 
-    [*] --> Todo
-
     state Todo<<todo>> {
         [*] --> Idle
-        Idle --> InProgress : EvConfig
         Configuring --> Idle : EvConfig
     }
     Todo : Some description text here
@@ -104,6 +105,9 @@
 
     state Finished<<done>>
 
+    [*] --> Init
+    Init --> Todo
+    Todo --> InProgress
     InProgress --> Finished
 @enduml
 
