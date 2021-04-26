@@ -53,18 +53,26 @@
     end box
 
     Foo -> Foo1 : To actor
+
     alt Alt
         Foo -> Foo2 : To boundary
-        activate Foo2
     end
+
     group group
         Foo -> Foo3 : To control
-        activate Foo3
     end
-    note left: Left note
+
+    note left : Left note
+
     ref over Foo : Reference
-    Foo -> Foo4 : To entity
-    deactivate Foo2
+
+
+    loop looping
+        Foo -> Foo4 : To entity
+    end
+
+    hnote right : Hex note
+
     ... Delay ...
     Foo -> Foo5 : To database
     == Section Title ==
@@ -95,7 +103,7 @@
         NewValuePreview --> NewValueSelection : EvNewValueRejected
         NewValuePreview --> NewValueSelection : EvNewValueSaved
 
-        state NewValuePreview {
+        state NewValuePreview<<composite>> {
             State1 -> State2
         }
         ||
@@ -229,4 +237,10 @@
         description text
     ]
     usecase/ "usecase/"
+
+    legend left
+        Legend text
+    end legend
+
+    note "Note text" as note1
 @enduml

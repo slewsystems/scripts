@@ -87,6 +87,7 @@
     "codeFont": "Menlo",
     "canvasBackgroundColor": "White",
     "titleFontSize": 16,
+    "subtitleFontSize": 14,
     "headerBackgroundColor": "LightSteelBlue",
     "headerFontColor": "Black",
     "headerFontStyle": "Bold",
@@ -362,22 +363,21 @@
     ' should mimic state styling
     skinparam Activity {
         FontStyle Normal
-        FontSize 12
         FontColor $get_themed_value("bodyFontColor")
         BackgroundColor $get_themed_value("bodyBackgroundColor")
         BorderColor $get_themed_value("borderColor")
 
         Diamond {
             FontStyle Bold
-            FontSize 12
             FontColor $get_themed_value("headerFontColor")
             BackgroundColor $get_themed_value("headerBackgroundColor")
             BorderColor $get_themed_value("borderColor")
-            BorderThickness 1
+            BorderThickness $get_themed_value("borderThickness")
         }
     }
 
     skinparam Swimlane {
+        TitleFontSize $get_themed_value("subtitleFontSize")
         ' TODO: add into theme json
         BorderColor SlateGray
         BorderThickness 3
@@ -412,19 +412,26 @@
             ' TODO: use a lighter color, put into theme json
             BackgroundColor GhostWhite
             BorderColor $get_themed_value("borderColor")
+            ' NOTE: border thickness not supported on box
+            BorderThickness $get_themed_value("borderThickness")
+        }
+
+        Delay {
+            FontColor $get_themed_value("labelFontColor")
+            FontStyle Italic
         }
 
         Group {
             BackgroundColor $get_themed_value("headerBackgroundColor")
             BorderColor $get_themed_value("borderColor")
-            BorderThickness 1
+            BorderThickness $get_themed_value("borderThickness")
             BodyBackgroundColor Transparent
         }
 
         Reference {
             HeaderBackgroundColor $get_themed_value("headerBackgroundColor")
             BorderColor $get_themed_value("borderColor")
-            BorderThickness 1
+            BorderThickness $get_themed_value("borderThickness")
             BodyBackgroundColor Transparent
         }
 
