@@ -165,27 +165,28 @@
 ' Diagram specific styles (should follow $apply_*_styles() naming convention)
 
 !procedure $apply_activity_styles()
+    ' should mimic state styling
     skinparam Activity {
-        ' should mimic state styling
         FontStyle Normal
         FontSize 12
         FontColor Black
         BackgroundColor GhostWhite
-        BorderColor Lavender
-        BorderThickness 0
+        BorderColor DarkSlateGrey
+        BorderThickness 1
 
         Diamond {
             FontStyle Bold
             FontSize 12
             FontColor Black
             BackgroundColor LightSteelBlue
-            BorderColor LightSteelBlue
+            BorderColor DarkSlateGrey
+            BorderThickness 1
         }
     }
 
     skinparam Swimlane {
         BorderColor SlateGray
-        BorderThickness 2
+        BorderThickness 3
     }
 !endprocedure
 
@@ -202,30 +203,24 @@
         ArrowThickness 2
 
         Participant {
-            Padding 10
-            BorderColor SlateGrey
             BackgroundColor GhostWhite
-        }
-
-        Actor {
             BorderColor SlateGrey
-            BackgroundColor GhostWhite
         }
 
         LifeLine {
-            BorderColor LightGrey
-            BackgroundColor GhostWhite
+            BorderColor SlateGrey
+            BackgroundColor LightSteelBlue
         }
 
         Box {
-            BackgroundColor transparent
+            BackgroundColor GhostWhite
             BorderColor DarkGrey
         }
 
         Group {
             ' Should match Reference styling
             BackgroundColor LightSteelBlue
-            BorderColor LightSteelBlue
+            BorderColor DarkSlateGrey
             BorderThickness 1
             BodyBackgroundColor Transparent
         }
@@ -233,7 +228,7 @@
         Reference {
             ' Should match Group styling
             HeaderBackgroundColor LightSteelBlue
-            BorderColor LightSteelBlue
+            BorderColor DarkSlateGrey
             BorderThickness 1
             BodyBackgroundColor Transparent
         }
@@ -247,14 +242,17 @@
 
 !procedure $apply_state_styles()
     hide empty description
+
+    ' should mimick activity styling
     skinparam State {
         BackgroundColor GhostWhite
-        BorderColor Lavender
+        BorderColor DarkSlateGrey
         FontColor Black
         FontStyle Bold
         FontSize 12
         AttributeFontSize 11
         AttributeFontColor DarkSlateGrey
+        BorderThickness 1
 
         BackgroundColor<<todo>> RoyalBlue
         BorderColor<<todo>> MediumBlue
@@ -276,9 +274,9 @@
     skinparam packageStyle Frame
 
     skinparam Class {
-        HeaderBackgroundColor GhostWhite
-        BackgroundColor Transparent
-        BorderColor Lavender
+        HeaderBackgroundColor LightSteelBlue
+        BackgroundColor GhostWhite
+        BorderColor DarkSlateGrey
         FontStyle Bold
         FontSize 12
         FontColor Black
@@ -289,8 +287,8 @@
 
     skinparam Stereotype {
         C {
-            BackgroundColor LightSteelBlue
-            BorderColor LightSteelBlue
+            BackgroundColor GhostWhite
+            BorderColor DarkSlateGrey
         }
     }
 !endprocedure
@@ -305,6 +303,7 @@
     skinparam Class {
         BorderColor<<table>> DarkSlateGrey
         HeaderBackgroundColor<<table>> LightSteelBlue
+        FontStyle Bold
         BackgroundColor<<table>> GhostWhite
 
         AttributeIconSize<<table>> 8
@@ -314,8 +313,8 @@
     }
 
     skinparam Class {
-        BorderColor<<enum>> PaleVioletRed
-        HeaderBackgroundColor<<enum>> Pink
+        BorderColor<<enum>> DarkRed
+        HeaderBackgroundColor<<enum>> IndianRed
         BackgroundColor<<enum>> LightPink
 
         AttributeIconSize<<enum>> 8
