@@ -570,6 +570,9 @@
 !procedure $apply_object_styles()
     ' object diagrams are pretty much class diagrams
     $apply_class_styles()
+
+    hide circle
+    set namespaceSeparator none
 !endprocedure
 
 !procedure $apply_generic_styles()
