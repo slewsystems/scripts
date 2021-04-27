@@ -152,6 +152,7 @@
     }
 
     skinparam Arrow {
+        Thickess 1
         Color $get_themed_value("arrowColor")
         FontColor $get_themed_value("labelFontColor")
     }
@@ -181,6 +182,7 @@
         BorderThickness $get_themed_value("borderThickness", "symbol")
     }
 
+    ' NOTE: looks like this is styling Circle
     skinparam Interface {
         FontColor $get_themed_value("labelFontColor")
         BackgroundColor $get_themed_value("bodyBackgroundColor")
@@ -344,6 +346,7 @@
 
         AttributeFontSize $get_themed_value("bodyFontSize")
         AttributeFontColor $get_themed_value("bodyFontColor")
+        AttributeFontName $get_themed_value("codeFont")
     }
 
     skinparam State {
@@ -357,6 +360,13 @@
 
         BorderColor $get_themed_value("borderColor")
         BorderThickness $get_themed_value("borderThickness")
+    }
+
+    ' used in class, object, and activity diagrams
+    skinparam ActivityDiamond {
+        BackgroundColor $get_themed_value("headerBackgroundColor")
+        BorderColor $get_themed_value("borderColor")
+        BorderThickness $get_themed_value("borderThickness", "symbol")
     }
 !endprocedure
 
@@ -374,8 +384,6 @@
         Diamond {
             FontStyle Bold
             FontColor $get_themed_value("headerFontColor")
-            BackgroundColor $get_themed_value("headerBackgroundColor")
-            BorderColor $get_themed_value("borderColor")
             BorderThickness $get_themed_value("borderThickness")
         }
     }
@@ -469,7 +477,6 @@
 
 !procedure $apply_state_styles()
     hide empty description
-    skinparam arrowThickness 1
 
     skinparam State<<composite>> {
         BackgroundColor $get_themed_value("headerBackgroundColor")
@@ -501,14 +508,23 @@
 !endprocedure
 
 !procedure $apply_class_styles()
-    skinparam packageStyle Frame
-    skinparam arrowThickness 1
+    set namespaceSeparator ::
+
+    skinparam Package {
+        Style Rectangle
+        FontStyle Bold
+    }
 
     skinparam Stereotype {
         C {
             BackgroundColor $get_themed_value("bodyBackgroundColor")
             BorderColor $get_themed_value("borderColor")
         }
+    }
+
+    ' NOTE: this is styling Circle (bug in plantuml)
+    skinparam Interface {
+        BackgroundColor $get_themed_value("headerBackgroundColor")
     }
 !endprocedure
 
@@ -517,6 +533,11 @@
     hide circle
     hide empty members
     hide stereotype
+
+    skinparam Package {
+        Style Frame
+        FontStyle Bold
+    }
 
     skinparam Class {
         AttributeFontName<<table>> $get_themed_value("codeFont")
