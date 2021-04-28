@@ -70,15 +70,14 @@
 
 !procedure $add_std_footer()
     !$footer = ""
-    !if $confidential == %true()
-        skinparam FooterFontColor red
-        !$footer = $footer + "Confidential"
-    !endif
     !if %variable_exists("$company_name")
+        !$footer = $footer + $company_name
+    !endif
+    !if $confidential == %true()
         !if %strlen($footer) > 0
             !$footer = $footer + " - "
         !endif
-        !$footer = $footer + $company_name
+        !$footer = $footer + "<color:red>Confidential</color>"
     !endif
 
     !if %not($hide_meta)
