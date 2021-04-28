@@ -110,6 +110,7 @@ When calling `$setup_std_diagram` you must pass in a diagram type name as the fi
 - `$setup_std_diagram("class")`
 - `$setup_std_diagram("usecase")`
 - `$setup_std_diagram("object")`
+- `$setup_std_diagram("deployment")`
 - `$setup_std_diagram("er")`
 - `$setup_std_diagram()` (same as `$setup_std_diagram("generic")`)
 
