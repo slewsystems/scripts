@@ -80,7 +80,7 @@ You can include this file into your Plantuml diagrams to opt into some better lo
 !$author_name = "John Smith"
 !$revision_name = "1"
 
-$setup_std_diagram_for("<diagram-type>")
+$setup_std_diagram("<diagram-type>")
 
 ' Diagram stuff here!
 
