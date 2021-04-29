@@ -183,21 +183,36 @@
 
     package Items {
         table(items) {
+            ---
             column_pk()
             omitted_columns()
+            column_fk_poly(ownable)
         }
     }
 
+    poly_table(ownable)
+
+    table(users) {
+        ---
+        column_pk()
+    }
+
     table(items_progress_report_caches) {
+        ---
         column_pk()
         timestamps()
         column_fk(item_id)
-
         column_non_nullable(photos_uploaded, REPORT_STATUS_ENUM)
         column_non_nullable(photo_editing_work, REPORT_STATUS_ENUM)
     }
 
     has_one(items_progress_report_caches, items)
+    has_one(items, ownable)
+    has_one(ownable, users)
+
+    note right of items::id
+        test
+    end note
 @enduml
 
 @startuml example_generic
