@@ -616,7 +616,7 @@
 !define PK_TYPE INTEGER(11)
 
 !define table(name) entity name<<table>>
-!define poly_table(name) abstract name<polymorphic> #line.dotted
+!define poly_assoc(name) abstract name<polymorphic> #line.dotted
 !define enum_mapping(name, type) enum name<type><<enum>>
 !define enum_value(name, value) {field} - <b>name</b>: value
 

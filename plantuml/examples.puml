@@ -190,7 +190,7 @@
         }
     }
 
-    poly_table(ownable)
+    poly_assoc(ownable)
 
     table(users) {
         ---
