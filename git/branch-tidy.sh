@@ -261,7 +261,7 @@ function scan_branches_for_deletion() {
         exit 0
     fi
 
-    if [ "$AUTO_YES" = true ] | ask "Delete all ${#DELETABLE_BRANCHES[@]} merged/squashed or stale branches?" "N"; then
+    if [ "$AUTO_YES" = true ] || ask "Delete all ${#DELETABLE_BRANCHES[@]} merged/squashed or stale branches?" "N"; then
         for refname in "${DELETABLE_BRANCHES[@]}"; do
             destroy_branch "$refname"
         done
