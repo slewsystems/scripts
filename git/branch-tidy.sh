@@ -24,34 +24,48 @@ function echo_soft_warn() { echo -e "\\033[0;33m$*\\033[0m"; }
 function echo_success() { echo -e "\\033[0;32m$*\\033[0m"; }
 function echo_info() { echo -e "$*\\033[0m"; }
 
-# print_branch_list_item [branch status] [branch name]
-# print_branch_list_item "ignored" [branch_name]
-# print_branch_list_item "squashed" [branch_name]
-# print_branch_list_item "merged" [branch_name]
-# print_branch_list_item "stale" [branch_name]
-# print_branch_list_item "untracked" [branch_name]
-# print_branch_list_item "not merged" [branch_name]
+# print_branch_list_item [branch status] [branch name] [deleted y/n]
+# print_branch_list_item "ignored" [branch_name] "n"
+# print_branch_list_item "squashed" [branch_name] "y"
+# print_branch_list_item "merged" [branch_name] "y"
+# print_branch_list_item "stale" [branch_name] "y"
+# print_branch_list_item "untracked" [branch_name] "n"
+# print_branch_list_item "not merged" [branch_name] "n"
 function print_branch_list_item() {
-    local COLOR="\\033[0m" # no color
+    local DELETE_COLOR="\\033[0m" # no color
+    local STATUS_COLOR="\\033[0m" # no color
+    local BRANCH_COLOR="\\033[0m" # no color
     local BRANCH_STATUS="$1"
     local BRANCH_NAME="$2"
+    local BRANCH_PENDING_DELETE="$3"
 
     case "$BRANCH_STATUS" in
     "squashed" | "merged")
-        COLOR="\\033[0;31m" # red
+        STATUS_COLOR="\\033[0;91m" # red
         ;;
     "stale")
-        COLOR="\\033[0;33m" # yellow
+        STATUS_COLOR="\\033[0;33m" # yellow
         ;;
     "not merged")
-        COLOR="\\033[0;34m" # blue
+        STATUS_COLOR="\\033[0;34m" # blue
         ;;
     "ignored" | "untracked")
-        COLOR="\\033[0;32m" # green
+        STATUS_COLOR="\\033[0;32m" # green
         ;;
     esac
 
-    printf "${COLOR}%10s\\033[0m\\t%s \\n" "$BRANCH_STATUS" "$BRANCH_NAME"
+    case "$BRANCH_PENDING_DELETE" in
+    "y" | "Y")
+        DELETE_COLOR="\\033[1;31m"    # red fg
+        BRANCH_COLOR="\\033[0;97;41m" # white fg, red bg
+        ;;
+    "n" | "N" | *)
+        DELETE_COLOR="\\033[1;32m" # green fg
+        BRANCH_COLOR="\\033[2m"    # white fg, red bg
+        ;;
+    esac
+
+    printf "${DELETE_COLOR} %-2s\\033[0m${STATUS_COLOR}%-20s\\033[0m\\t${BRANCH_COLOR}%s\\033[0m\\n" "$BRANCH_PENDING_DELETE" "[ $BRANCH_STATUS ]" "$BRANCH_NAME"
 }
 
 # Look for an element in a list (thank you: https://stackoverflow.com/a/8063398/5286136)
@@ -230,6 +244,7 @@ function scan_branches_for_deletion() {
 
     # TODO: detect branches that are many many commits behind master
 
+    printf "\\033[1m%-20s\\t%s\\033[22m\\n" "Delete? [Status]" "Branch name"
     for refname in "${ALL_BRANCHES[@]}"; do
         # check if the branch is a whitelisted one. if so, then skip it
         if list_contains "${IGNORED_BRANCHES[*]}" "$refname"; then
@@ -240,19 +255,19 @@ function scan_branches_for_deletion() {
         # lets check if the branch is merged into latest master.
         # if not then lets check if the branch has been squashed into master
         if branch_merged "$refname"; then
-            print_branch_list_item "merged" "$refname"
+            print_branch_list_item "merged" "$refname" "Y"
             DELETABLE_BRANCHES+=("$refname")
         elif branch_squashed "$refname"; then
-            print_branch_list_item "squashed" "$refname"
+            print_branch_list_item "squashed" "$refname" "Y"
             DELETABLE_BRANCHES+=("$refname")
         elif branch_untracked "$refname"; then
-            print_branch_list_item "untracked" "$refname"
+            print_branch_list_item "untracked" "$refname" "N"
             # we wont delete untracked branches
         elif branch_tracked_dead "$refname"; then
-            print_branch_list_item "stale" "$refname"
+            print_branch_list_item "stale" "$refname" "Y"
             DELETABLE_BRANCHES+=("$refname")
         else
-            print_branch_list_item "not merged" "$refname"
+            print_branch_list_item "not merged" "$refname" "N"
         fi
     done
 
