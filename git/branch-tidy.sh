@@ -43,7 +43,7 @@ function print_branch_list_item() {
     "squashed" | "merged")
         STATUS_COLOR="\\033[0;91m" # red
         ;;
-    "stale")
+    "merged upstream")
         STATUS_COLOR="\\033[0;33m" # yellow
         ;;
     "not merged")
@@ -264,7 +264,7 @@ function scan_branches_for_deletion() {
             print_branch_list_item "untracked" "$refname" "N"
             # we wont delete untracked branches
         elif branch_tracked_dead "$refname"; then
-            print_branch_list_item "stale" "$refname" "Y"
+            print_branch_list_item "merged upstream" "$refname" "Y"
             DELETABLE_BRANCHES+=("$refname")
         else
             print_branch_list_item "not merged" "$refname" "N"
