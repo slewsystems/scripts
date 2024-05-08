@@ -47,6 +47,11 @@ function is_command_found() {
   command -v "$COMMAND" >/dev/null 2>/dev/null
 }
 
+function is_gem_installed() {
+  local GEM_NAME="$1"
+  gem list -i "^${GEM_NAME}\$" >/dev/null 2>/dev/null
+}
+
 # function is_string_contains() {
 #   local STR="$1"
 #   local SUB="$2"
@@ -97,7 +102,7 @@ function stop_web_server() {
 }
 
 function ensure_system_dependencies() {
-  echo -n "Checking system dependencies "
+  echo -n "Checking required system dependencies: "
   if is_command_found "node"; then
     echo -n "node "
   else
@@ -122,6 +127,20 @@ function ensure_system_dependencies() {
   echo "... ok!"
 }
 
+function ensure_misc_system_dependencies() {
+  echo -n "Checking optional system dependencies: "
+
+  if is_gem_installed "debug"; then
+    echo -n "debug"
+  else
+    if ask "Missing Ruby debug gem. Install now?"; then
+      gem install 'debug' || return 1
+    fi
+  fi
+
+  echo "... ok!"
+}
+
 function ensure_ruby_version() {
   echo -n "Checking Ruby version... "
   CURRENT_RUBY_VERSION=$(ruby -v | sed -E 's/ruby ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
@@ -139,11 +158,6 @@ function ensure_ruby_version() {
 
       echo "Installing Ruby $EXPECTED_RUBY_VERSION... "
       rbenv install || return 1
-
-      if ask "Install Ruby debug dependencies?"; then
-        echo "Installing debug gem (globally)... "
-        gem install 'debug' || return 0
-      fi
 
       return 0
     else
@@ -228,7 +242,7 @@ function ensure_yarn_version() {
   fi
 }
 
-function install_all_dependencies() {
+function install_project_dependencies() {
   echo -n "Installing Node and Ruby project dependencies... "
 
   # running both in parallel for speeeed
@@ -333,7 +347,8 @@ function main() {
   ensure_node_version || return 1
   ensure_ruby_package_manager || return 1
   ensure_node_package_manager || return 1
-  install_all_dependencies || return 1
+  ensure_misc_system_dependencies || return 1
+  install_project_dependencies || return 1
 
   if is_database_service_running; then
     migrate_databases || return 1
