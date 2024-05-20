@@ -10,6 +10,12 @@
  * the increase/decrease main pane count keybindings are bound to "Custom Command 1"
  * and "Custom Command 2" respectively.
  *
+ * Keybindings:
+ * - Custom layout command 1: Increase main pane count (or leave carousel mode)
+ * - Custom layout command 2: Decrease main pane count (or enter carousel mode)
+ * - Custom layout command 3: Increase main pane size
+ * - Custom layout command 4: Decrease main pane size
+ *
  * Dev Notes:
  * https://github.com/ianyh/Amethyst/blob/development/docs/custom-layouts.md
  * https://github.com/ianyh/Amethyst/tree/development/AmethystTests/Model/CustomLayouts
