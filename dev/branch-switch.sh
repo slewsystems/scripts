@@ -14,7 +14,7 @@
 # ---------------------------
 
 APP_DIRECTORY=${1:-$PWD}
-DATABASE_DOCKER_SERVICE_NAME="postgres13"
+DATABASE_DOCKER_SERVICE_NAME="postgres14"
 BUNDLER_GEMFILE_LOCK_FILE="Gemfile.lock"
 RUBY_VERSION_FILE=".ruby-version"
 NODE_VERSION_FILE=".node-version"
