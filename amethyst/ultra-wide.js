@@ -108,9 +108,9 @@ function layout() {
   return {
     name: '3Column Ultra Wide',
     initialState: {
-      mainPaneRatio: 0.5,
-      mainPaneCount: 1,
       layoutMode: 'carousel', // center, carousel, grid
+      mainPaneRatio: 0.6,
+      mainPaneCount: 2,
     },
     commands: {
       command1: {
