@@ -26,6 +26,12 @@ function layout() {
   const maxMainPanelRatio = 0.9;
   const paneResizeStep = 0.05; // TODO: use the 'window-resize-step' amount from Amethyst
 
+  const LAYOUT_MODES = {
+    CAROUSEL: 'carousel',
+    CENTER: 'center',
+    GRID: 'grid',
+  }
+
   const partitionWindows = (windows, minWindowsPerPane = 0) => {
     const splitIndex = Math.max(
       Math.ceil(windows.length / 2),
@@ -95,11 +101,11 @@ function layout() {
     let layoutMode = originalLayoutMode;
 
     if (mainPaneCount === 0) {
-      layoutMode = 'grid';
-    } else if (mainPaneCountDelta < 0 && originalLayoutMode == 'grid') {
-      layoutMode = 'center';
-    } else if (mainPaneCountDelta > 0 && originalLayoutMode == 'grid') {
-      layoutMode = 'carousel';
+      layoutMode = LAYOUT_MODES.GRID;
+    } else if (mainPaneCountDelta < 0 && originalLayoutMode == LAYOUT_MODES.GRID) {
+      layoutMode = LAYOUT_MODES.CENTER;
+    } else if (mainPaneCountDelta > 0 && originalLayoutMode == LAYOUT_MODES.GRID) {
+      layoutMode = LAYOUT_MODES.CAROUSEL;
     }
 
     return { mainPaneCount, layoutMode };
@@ -108,9 +114,9 @@ function layout() {
   return {
     name: '3Column Ultra Wide',
     initialState: {
-      layoutMode: 'carousel', // center, carousel, grid
       mainPaneRatio: 0.6,
       mainPaneCount: 2,
+      layoutMode: LAYOUT_MODES.CAROUSEL,
     },
     commands: {
       command1: {
@@ -162,7 +168,7 @@ function layout() {
       const secondaryPaneWidth = screenFrame.width - mainPaneWidth;
 
       switch (state.layoutMode) {
-        case 'carousel': {
+        case LAYOUT_MODES.CAROUSEL: {
           // divide by two so main pain is as big as center + right when in center mode
           const leftPaneWidth =
             secondaryPaneWindows.length > 0 ? secondaryPaneWidth / 2 : 0;
@@ -182,12 +188,12 @@ function layout() {
             ...bspWindowPanes(secondaryPaneWindows, leftPane, true),
           };
         }
-        case 'grid': {
+        case LAYOUT_MODES.GRID: {
           return {
             ...bspWindowPanes(windows, screenFrame, false),
           };
         }
-        case 'center': {
+        case LAYOUT_MODES.CENTER: {
           const [leftSecondaryPaneWindows, rightSecondaryPaneWindows] =
             partitionWindows(secondaryPaneWindows, 2);
 
