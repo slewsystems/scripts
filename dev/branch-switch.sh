@@ -128,17 +128,39 @@ function ensure_system_dependencies() {
 }
 
 function ensure_misc_system_dependencies() {
+  local NEEDS_RIPPER_TAGS=true
+  local NEEDS_DEBUG=true
+
   echo -n "Checking optional system dependencies: "
 
+  echo -n "debug "
   if is_gem_installed "debug"; then
-    echo -n "debug"
+    NEEDS_DEBUG=false
+  fi
+
+  # ripper-tags is just needed for the bust-a-gem vscode extension
+  echo -n "ripper-tags "
+  if is_gem_installed "ripper-tags"; then
+    NEEDS_RIPPER_TAGS=false
+  fi
+
+  if [ $NEEDS_RIPPER_TAGS = false ] && [ $NEEDS_DEBUG = false ]; then
+    echo "... ok!"
   else
+    echo "... missing!"
+  fi
+
+  if [ $NEEDS_DEBUG = true ]; then
     if ask "Missing Ruby debug gem. Install now?"; then
       gem install 'debug' || return 1
     fi
   fi
 
-  echo "... ok!"
+  if [ $NEEDS_RIPPER_TAGS = true ]; then
+    if ask "Missing Ruby ripper-tags gem. Install now?"; then
+      gem install 'ripper-tags' || return 1
+    fi
+  fi
 }
 
 function ensure_ruby_version() {
