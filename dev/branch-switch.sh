@@ -20,10 +20,77 @@ RUBY_VERSION_FILE=".ruby-version"
 NODE_VERSION_FILE=".node-version"
 WEB_SERVER_PID_FILE="$APP_DIRECTORY/tmp/pids/server.pid"
 WEB_SERVER_PID=$(cat "$WEB_SERVER_PID_FILE" 2>/dev/null)
+CONTAINER_PROVIDER=""
 
-function is_docker_service_running() {
+function determine_container_provider() {
+  local PREFERRED_CONTAINER_PROVIDER="podman"
+  local FOUND_PROVIDERS=()
+
+  echo -n "Checking container provider... "
+
+  if is_command_found "docker"; then
+    FOUND_PROVIDERS+=("docker")
+  fi
+
+  if is_command_found "podman"; then
+    FOUND_PROVIDERS+=("podman")
+  fi
+
+  if [ ${#FOUND_PROVIDERS[@]} -eq 0 ]; then
+    echo "none found! Install a container provider (Docker or Podman)"
+    return 1
+  fi
+
+  echo -n "${FOUND_PROVIDERS[*]}"
+
+  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
+    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_CONTAINER_PROVIDER ]]; then
+      export CONTAINER_PROVIDER="$PREFERRED_CONTAINER_PROVIDER"
+      echo " ... ok! (using preferred: $CONTAINER_PROVIDER)"
+    else
+      export CONTAINER_PROVIDER="${FOUND_PROVIDERS[-1]}"
+      echo " ... ok! (using: $CONTAINER_PROVIDER)"
+    fi
+  else
+    export CONTAINER_PROVIDER="${FOUND_PROVIDERS[0]}"
+    echo " ... ok!"
+  fi
+}
+
+function is_compose_service_running() {
   local SERVICE_NAME="$1"
-  docker ps --format="{{.Names}}" 2>/dev/null | grep -q "$SERVICE_NAME"
+  case "$CONTAINER_PROVIDER" in
+  "docker")
+    docker ps --format="{{.Names}}" 2>/dev/null | grep -q "$SERVICE_NAME"
+    ;;
+  "podman")
+    podman ps --format="{{.Names}}" 2>/dev/null | grep -q "$SERVICE_NAME"
+    ;;
+  esac
+}
+
+function stop_compose_service() {
+  local SERVICE_NAME="$1"
+  case "$CONTAINER_PROVIDER" in
+  "docker")
+    docker compose stop "$SERVICE_NAME"
+    ;;
+  "podman")
+    podman-compose stop "$SERVICE_NAME"
+    ;;
+  esac
+}
+
+function start_compose_service() {
+  local SERVICE_NAME="$1"
+  case "$CONTAINER_PROVIDER" in
+  "docker")
+    docker compose start "$SERVICE_NAME"
+    ;;
+  "podman")
+    podman-compose start "$SERVICE_NAME"
+    ;;
+  esac
 }
 
 function is_process_running() {
@@ -39,7 +106,7 @@ function is_web_server_running() {
 }
 
 function is_database_running() {
-  is_docker_service_running "$DATABASE_DOCKER_SERVICE_NAME"
+  is_compose_service_running "$DATABASE_COMPOSE_SERVICE_NAME"
 }
 
 function is_command_found() {
@@ -78,8 +145,8 @@ function ask() {
 }
 
 function stop_database_service() {
-  echo -n "Stopping database... "
-  if docker-compose stop "$DATABASE_DOCKER_SERVICE_NAME" >/dev/null 2>/dev/null; then
+  echo -n "Stopping database compose service... "
+  if stop_compose_service "$DATABASE_COMPOSE_SERVICE_NAME" >/dev/null 2>/dev/null; then
     echo "stopped!"
     return 0
   else
@@ -89,9 +156,9 @@ function stop_database_service() {
 }
 
 function start_database_service() {
-  echo -n "Starting database container service... "
-  docker-compose start "$DATABASE_DOCKER_SERVICE_NAME" >/dev/null 2>/dev/null &
-  sleep 20
+  echo -n "Starting database compose service... "
+  start_compose_service "$DATABASE_COMPOSE_SERVICE_NAME" >/dev/null 2>/dev/null &
+  sleep 10
   echo "probably started by now, moving on!"
 }
 
@@ -364,7 +431,7 @@ function main() {
   export DISABLE_SPRING=1 # disble spring for all rails commands ran
 
   ensure_system_dependencies || return 1
-
+  determine_container_provider || return 1
   ensure_ruby_version || return 1
   ensure_node_version || return 1
   ensure_ruby_package_manager || return 1
