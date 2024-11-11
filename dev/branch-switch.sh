@@ -232,6 +232,9 @@ function ensure_misc_system_dependencies() {
 
 function ensure_ruby_version() {
   echo -n "Checking Ruby version... "
+  local CURRENT_RUBY_VERSION
+  local EXPECTED_RUBY_VERSION
+
   CURRENT_RUBY_VERSION=$(ruby -v | sed -E 's/ruby ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
   EXPECTED_RUBY_VERSION=$(cat "$RUBY_VERSION_FILE")
 
@@ -266,7 +269,7 @@ function ensure_node_version() {
     return 0
   else
     echo "outdated! Expected version $EXPECTED_NODE_VERSION but received version $CURRENT_NODE_VERSION"
-    echo -n "Checking for Node vm... "
+    echo -n "Checking for Node version manager... "
     if is_command_found "nodenv"; then
       echo "nodenv found!"
 
