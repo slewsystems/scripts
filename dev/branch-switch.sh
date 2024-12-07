@@ -244,7 +244,7 @@ function ensure_ruby_version() {
   else
     echo "outdated! Expected version $EXPECTED_RUBY_VERSION but received version $CURRENT_RUBY_VERSION"
 
-    echo -n "Checking for Ruby vm... "
+    echo -n "Checking Ruby version manager... "
     if is_command_found "rbenv"; then
       echo "rbenv found!"
 
@@ -269,7 +269,7 @@ function ensure_node_version() {
     return 0
   else
     echo "outdated! Expected version $EXPECTED_NODE_VERSION but received version $CURRENT_NODE_VERSION"
-    echo -n "Checking for Node version manager... "
+    echo -n "Checking Node version manager... "
     if is_command_found "nodenv"; then
       echo "nodenv found!"
 
@@ -358,7 +358,7 @@ function restart_web_server() {
 }
 
 function is_database_service_running() {
-  echo -n "Checking for database container service... "
+  echo -n "Checking database compose service... "
 
   if is_database_running; then
     echo "running!"
@@ -428,8 +428,9 @@ function migrate_databases() {
 ######################################
 
 function main() {
-  echo "Running for app in directory: $APP_DIRECTORY"
+  echo -n "Running in directory: $APP_DIRECTORY... "
   cd "$APP_DIRECTORY" || return 1
+  echo "ok!"
 
   export DISABLE_SPRING=1 # disble spring for all rails commands ran
 
