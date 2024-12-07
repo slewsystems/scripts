@@ -274,7 +274,16 @@ function ensure_node_version() {
       echo "nodenv found!"
 
       echo "Installing Node $EXPECTED_NODE_VERSION... "
-      nodenv install -fs || return 1
+      if ! nodenv install -fs; then
+        if ask "Upgrade node-build and try again?"; then
+          unset HOMEBREW_NO_AUTO_UPDATE # force brew to update local repo to ensure latest version is installed
+          HOMEBREW_NO_ENV_HINTS=1 brew upgrade node-build --force || return 1
+          ensure_node_version || return 1
+        else
+          echo "Missing node version, cannot continue. Aborting..."
+          return 1
+        fi
+      fi
     else
       echo "none found. aborting..."
       return 1
