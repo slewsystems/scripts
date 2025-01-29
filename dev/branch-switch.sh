@@ -76,7 +76,7 @@ function stop_compose_service() {
     docker compose stop "$SERVICE_NAME"
     ;;
   "podman")
-    podman-compose stop "$SERVICE_NAME"
+    podman compose stop "$SERVICE_NAME"
     ;;
   esac
 }
@@ -88,7 +88,7 @@ function start_compose_service() {
     docker compose start "$SERVICE_NAME"
     ;;
   "podman")
-    podman-compose start "$SERVICE_NAME"
+    podman compose start "$SERVICE_NAME"
     ;;
   esac
 }
