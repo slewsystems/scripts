@@ -11,10 +11,10 @@
  * and "Custom Command 2" respectively.
  *
  * Keybindings:
- * - Custom layout command 1: Increase main pane count (or leave carousel mode)
- * - Custom layout command 2: Decrease main pane count (or enter carousel mode)
- * - Custom layout command 3: Increase main pane size
- * - Custom layout command 4: Decrease main pane size
+ * - increaseMain: Increase main pane count (or leave carousel mode)
+ * - decreaseMain: Decrease main pane count (or enter carousel mode)
+ * - expandMain: Increase main pane size
+ * - shrinkMain: Decrease main pane size
  *
  * Dev Notes:
  * https://github.com/ianyh/Amethyst/blob/development/docs/custom-layouts.md
@@ -125,24 +125,21 @@ function layout() {
       layoutMode: LAYOUT_MODES.CAROUSEL,
     },
     commands: {
-      command1: {
-        // TODO: hopefully we can eventually bind to: increaseMainPaneCount (increase-main)
+      increaseMain: {
         description: 'Increase main pane count (or leave carousel mode)',
         updateState: (state) => ({
           ...state,
           ...calculateNewLayoutState(state, +1),
         }),
       },
-      command2: {
-        // TODO: hopefully we can eventually bind to: decreaseMainPaneCount (decrease-main)
+      decreaseMain: {
         description: 'Decrease main pane count (or enter carousel mode)',
         updateState: (state) => ({
           ...state,
           ...calculateNewLayoutState(state, -1),
         }),
       },
-      command3: {
-        // TODO: hopefully we can eventually bind to: expandMainPane (expand-main)
+      expandMain: {
         description: 'Increase main pane size',
         updateState: (state) => ({
           ...state,
@@ -152,8 +149,7 @@ function layout() {
           ),
         }),
       },
-      command4: {
-        // TODO: hopefully we can eventually bind to: shrinkMainPane (shrink-main)
+      shrinkMain: {
         description: 'Decrease main pane size',
         updateState: (state) => ({
           ...state,
