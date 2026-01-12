@@ -20,7 +20,10 @@ RUBY_VERSION_FILE=".ruby-version"
 NODE_VERSION_FILE=".node-version"
 WEB_SERVER_PID_FILE="$APP_DIRECTORY/tmp/pids/server.pid"
 WEB_SERVER_PID=$(cat "$WEB_SERVER_PID_FILE" 2>/dev/null)
+
 CONTAINER_PROVIDER=""
+RUBY_VM_PROVIDER=""
+NODE_VM_PROVIDER=""
 
 function determine_container_provider() {
   local PREFERRED_CONTAINER_PROVIDER="podman"
@@ -53,7 +56,85 @@ function determine_container_provider() {
     fi
   else
     export CONTAINER_PROVIDER="${FOUND_PROVIDERS[0]}"
-    echo " ... ok!"
+    echo " ... ok! (using: $CONTAINER_PROVIDER)"
+  fi
+}
+
+function determine_ruby_vm_provider() {
+  local PREFERRED_RUBY_VM_PROVIDER="rbenv"
+  local FOUND_PROVIDERS=()
+
+  echo -n "Checking Ruby VM provider... "
+
+  if is_command_found "rbenv"; then
+    FOUND_PROVIDERS+=("rbenv")
+  fi
+
+  if is_command_found "asdf"; then
+    if asdf plugin list | grep -q "ruby"; then
+      FOUND_PROVIDERS+=("asdf")
+    fi
+  fi
+
+  if [ ${#FOUND_PROVIDERS[@]} -eq 0 ]; then
+    echo "none found! Install a Ruby VM provider (rbenv or asdf)"
+    return 1
+  fi
+
+  echo -n "${FOUND_PROVIDERS[*]}"
+
+  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
+    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_RUBY_VM_PROVIDER ]]; then
+      export RUBY_VM_PROVIDER="$PREFERRED_RUBY_VM_PROVIDER"
+      echo " ... ok! (using preferred: $RUBY_VM_PROVIDER)"
+    else
+      export RUBY_VM_PROVIDER="${FOUND_PROVIDERS[-1]}"
+      echo " ... ok! (using: $RUBY_VM_PROVIDER)"
+    fi
+  else
+    export RUBY_VM_PROVIDER="${FOUND_PROVIDERS[0]}"
+    echo " ... ok! (using: $RUBY_VM_PROVIDER)"
+  fi
+}
+
+function determine_node_vm_provider() {
+  local PREFERRED_NODE_VM_PROVIDER="nodenv"
+  local FOUND_PROVIDERS=()
+
+  echo -n "Checking Node VM provider... "
+
+  if is_command_found "nodenv"; then
+    FOUND_PROVIDERS+=("nodenv")
+  fi
+
+  if is_command_found "nvm"; then
+    FOUND_PROVIDERS+=("nvm")
+  fi
+
+  if is_command_found "asdf"; then
+    if asdf plugin list | grep -q "nodejs"; then
+      FOUND_PROVIDERS+=("asdf")
+    fi
+  fi
+
+  if [ ${#FOUND_PROVIDERS[@]} -eq 0 ]; then
+    echo "none found! Install a Node VM provider (nodenv, nvm, or asdf)"
+    return 1
+  fi
+
+  echo -n "${FOUND_PROVIDERS[*]}"
+
+  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
+    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_NODE_VM_PROVIDER ]]; then
+      export NODE_VM_PROVIDER="$PREFERRED_NODE_VM_PROVIDER"
+      echo " ... ok! (using preferred: $NODE_VM_PROVIDER)"
+    else
+      export NODE_VM_PROVIDER="${FOUND_PROVIDERS[-1]}"
+      echo " ... ok! (using: $NODE_VM_PROVIDER)"
+    fi
+  else
+    export NODE_VM_PROVIDER="${FOUND_PROVIDERS[0]}"
+    echo " ... ok! (using: $NODE_VM_PROVIDER)"
   fi
 }
 
@@ -89,6 +170,40 @@ function start_compose_service() {
     ;;
   "podman")
     podman compose start "$SERVICE_NAME"
+    ;;
+  esac
+}
+
+function install_ruby() {
+  case "$RUBY_VM_PROVIDER" in
+  "rbenv")
+    rbenv install
+    ;;
+  "asdf")
+    asdf plugin update ruby && asdf install ruby
+    ;;
+  esac
+}
+
+function install_node() {
+  case "$NODE_VM_PROVIDER" in
+  "nodenv")
+      if ! nodenv install -fs; then
+        if ask "Upgrade node-build and try again?"; then
+          unset HOMEBREW_NO_AUTO_UPDATE # force brew to update local repo to ensure latest version is installed
+          HOMEBREW_NO_ENV_HINTS=1 brew upgrade node-build --force || return 1
+          install_node || return 1
+        else
+          echo "Missing node version, cannot continue. Aborting..."
+          return 1
+        fi
+      fi
+    ;;
+  "nvm")
+    nvm install
+    ;;
+  "asdf")
+    asdf plugin update nodejs && asdf install nodejs
     ;;
   esac
 }
@@ -244,18 +359,8 @@ function ensure_ruby_version() {
   else
     echo "outdated! Expected version $EXPECTED_RUBY_VERSION but received version $CURRENT_RUBY_VERSION"
 
-    echo -n "Checking Ruby version manager... "
-    if is_command_found "rbenv"; then
-      echo "rbenv found!"
-
-      echo "Installing Ruby $EXPECTED_RUBY_VERSION... "
-      rbenv install || return 1
-
-      return 0
-    else
-      echo "none found. aborting..."
-      return 1
-    fi
+    echo "Installing Ruby $EXPECTED_RUBY_VERSION... "
+    install_ruby || return 1
   fi
 }
 
@@ -269,25 +374,9 @@ function ensure_node_version() {
     return 0
   else
     echo "outdated! Expected version $EXPECTED_NODE_VERSION but received version $CURRENT_NODE_VERSION"
-    echo -n "Checking Node version manager... "
-    if is_command_found "nodenv"; then
-      echo "nodenv found!"
 
-      echo "Installing Node $EXPECTED_NODE_VERSION... "
-      if ! nodenv install -fs; then
-        if ask "Upgrade node-build and try again?"; then
-          unset HOMEBREW_NO_AUTO_UPDATE # force brew to update local repo to ensure latest version is installed
-          HOMEBREW_NO_ENV_HINTS=1 brew upgrade node-build --force || return 1
-          ensure_node_version || return 1
-        else
-          echo "Missing node version, cannot continue. Aborting..."
-          return 1
-        fi
-      fi
-    else
-      echo "none found. aborting..."
-      return 1
-    fi
+    echo "Installing Node $EXPECTED_NODE_VERSION... "
+    install_node || return 1
   fi
 }
 
@@ -441,15 +530,21 @@ function main() {
   cd "$APP_DIRECTORY" || return 1
   echo "ok!"
 
-  export DISABLE_SPRING=1 # disble spring for all rails commands ran
+  export DISABLE_SPRING=1 # disable spring for all rails commands ran
 
-  ensure_system_dependencies || return 1
   determine_container_provider || return 1
+  determine_ruby_vm_provider || return 1
+  determine_node_vm_provider || return 1
+
   ensure_ruby_version || return 1
   ensure_node_version || return 1
+
   ensure_ruby_package_manager || return 1
   ensure_node_package_manager || return 1
+
+  ensure_system_dependencies || return 1
   ensure_misc_system_dependencies || return 1
+
   install_project_dependencies || return 1
 
   if is_database_service_running; then
