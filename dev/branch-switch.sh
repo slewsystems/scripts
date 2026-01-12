@@ -8,18 +8,13 @@
 #
 # NOTE: This is very specific to a certain Rails application setup.
 #
-# Usage: branch-switch.sh [$(pwd)]
+# Usage: branch-switch.sh [-C $(pwd)] [-S <db_service_name>]
 # Options:
-# $1 specify path to local repo. When omitted the current directory is used
+# -C <path>: specify path to local repo. When omitted the current directory is used
+# -S <service_name>: Name of the database compose service (default: postgres16)
+# -h: Show help
 # ---------------------------
 
-APP_DIRECTORY=${1:-$PWD}
-DATABASE_COMPOSE_SERVICE_NAME="postgres16"
-BUNDLER_GEMFILE_LOCK_FILE="Gemfile.lock"
-RUBY_VERSION_FILE=".ruby-version"
-NODE_VERSION_FILE=".node-version"
-WEB_SERVER_PID_FILE="$APP_DIRECTORY/tmp/pids/server.pid"
-WEB_SERVER_PID=$(cat "$WEB_SERVER_PID_FILE" 2>/dev/null)
 
 CONTAINER_PROVIDER=""
 RUBY_VM_PROVIDER=""
@@ -456,7 +451,7 @@ function restart_web_server() {
 }
 
 function is_database_service_running() {
-  echo -n "Checking database compose service... "
+  echo -n "Checking database compose service... ${DATABASE_COMPOSE_SERVICE_NAME} ..."
 
   if is_database_running; then
     echo "running!"
@@ -526,11 +521,45 @@ function migrate_databases() {
 ######################################
 
 function main() {
-  echo -n "Running in directory: $APP_DIRECTORY... "
-  cd "$APP_DIRECTORY" || return 1
-  echo "ok!"
-
   export DISABLE_SPRING=1 # disable spring for all rails commands ran
+
+  # default values
+  export APP_DIRECTORY="$PWD"
+  export DATABASE_COMPOSE_SERVICE_NAME="postgres16"
+
+  while getopts 'hC:S:' flag; do
+    case "${flag}" in
+      C)
+        export APP_DIRECTORY="${OPTARG}"
+      ;;
+      S)
+        export DATABASE_COMPOSE_SERVICE_NAME="${OPTARG}"
+      ;;
+      h)
+        echo "Usage: $0 [-h] [-C <app_directory>]"
+        echo "Options: "
+        echo " -h: Show help"
+        echo " -C <app_directory>: Path to root application directory (default: current directory)"
+        echo " -S <service_name>: Name of the database compose service (default: postgres16)"
+        exit 0
+      ;;
+      *)
+        echo "Invalid option: -${flag}"
+        exit 1
+      ;;
+    esac
+  done
+
+  echo "Running in directory: $(realpath "$APP_DIRECTORY")"
+  cd "$APP_DIRECTORY" || return 1
+
+  export WEB_SERVER_PID_FILE="$APP_DIRECTORY/tmp/pids/server.pid"
+  WEB_SERVER_PID=$(cat "$WEB_SERVER_PID_FILE" 2>/dev/null)
+  export WEB_SERVER_PID
+  export BUNDLER_GEMFILE_LOCK_FILE="$APP_DIRECTORY/Gemfile.lock"
+  export RUBY_VERSION_FILE="$APP_DIRECTORY/.ruby-version"
+  export NODE_VERSION_FILE="$APP_DIRECTORY/.node-version"
+  export PROCFILE_FILE="$APP_DIRECTORY/Procfile"
 
   determine_container_provider || return 1
   determine_ruby_vm_provider || return 1
