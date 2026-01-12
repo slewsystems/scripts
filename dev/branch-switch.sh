@@ -8,10 +8,13 @@
 #
 # NOTE: This is very specific to a certain Rails application setup.
 #
-# Usage: branch-switch.sh [-C $(pwd)] [-S <db_service_name>]
+# Usage: branch-switch.sh [-C $(pwd)] [-s <db_service_name>] [-c <container_provider>] [-r <ruby_vm_provider>] [-n <node_vm_provider>]
 # Options:
 # -C <path>: specify path to local repo. When omitted the current directory is used
-# -S <service_name>: Name of the database compose service (default: postgres16)
+# -s <service_name>: Name of the database compose service (default: postgres16)
+# -c <container_provider>: Preferred container provider (default: podman)
+# -r <ruby_vm_provider>: Preferred Ruby VM provider (default: rbenv)
+# -n <node_vm_provider>: Preferred Node VM provider (default: nodenv)
 # -h: Show help
 # ---------------------------
 
@@ -21,7 +24,6 @@ RUBY_VM_PROVIDER=""
 NODE_VM_PROVIDER=""
 
 function determine_container_provider() {
-  local PREFERRED_CONTAINER_PROVIDER="podman"
   local FOUND_PROVIDERS=()
 
   echo -n "Checking container provider... "
@@ -41,22 +43,16 @@ function determine_container_provider() {
 
   echo -n "${FOUND_PROVIDERS[*]}"
 
-  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
-    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_CONTAINER_PROVIDER ]]; then
-      export CONTAINER_PROVIDER="$PREFERRED_CONTAINER_PROVIDER"
-      echo " ... ok! (using preferred: $CONTAINER_PROVIDER)"
-    else
-      export CONTAINER_PROVIDER="${FOUND_PROVIDERS[-1]}"
-      echo " ... ok! (using: $CONTAINER_PROVIDER)"
-    fi
+  if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_CONTAINER_PROVIDER ]]; then
+    export CONTAINER_PROVIDER="$PREFERRED_CONTAINER_PROVIDER"
+    echo " ... ok! (using preferred: $CONTAINER_PROVIDER)"
   else
     export CONTAINER_PROVIDER="${FOUND_PROVIDERS[0]}"
-    echo " ... ok! (using: $CONTAINER_PROVIDER)"
+    echo " ... ok! (missing preferred: $PREFERRED_CONTAINER_PROVIDER, using: $CONTAINER_PROVIDER)"
   fi
 }
 
 function determine_ruby_vm_provider() {
-  local PREFERRED_RUBY_VM_PROVIDER="rbenv"
   local FOUND_PROVIDERS=()
 
   echo -n "Checking Ruby VM provider... "
@@ -78,22 +74,16 @@ function determine_ruby_vm_provider() {
 
   echo -n "${FOUND_PROVIDERS[*]}"
 
-  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
-    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_RUBY_VM_PROVIDER ]]; then
-      export RUBY_VM_PROVIDER="$PREFERRED_RUBY_VM_PROVIDER"
-      echo " ... ok! (using preferred: $RUBY_VM_PROVIDER)"
-    else
-      export RUBY_VM_PROVIDER="${FOUND_PROVIDERS[-1]}"
-      echo " ... ok! (using: $RUBY_VM_PROVIDER)"
-    fi
+  if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_RUBY_VM_PROVIDER ]]; then
+    export RUBY_VM_PROVIDER="$PREFERRED_RUBY_VM_PROVIDER"
+    echo " ... ok! (using preferred: $RUBY_VM_PROVIDER)"
   else
     export RUBY_VM_PROVIDER="${FOUND_PROVIDERS[0]}"
-    echo " ... ok! (using: $RUBY_VM_PROVIDER)"
+    echo " ... ok! (missing preferred: $PREFERRED_RUBY_VM_PROVIDER, using: $RUBY_VM_PROVIDER)"
   fi
 }
 
 function determine_node_vm_provider() {
-  local PREFERRED_NODE_VM_PROVIDER="nodenv"
   local FOUND_PROVIDERS=()
 
   echo -n "Checking Node VM provider... "
@@ -119,17 +109,12 @@ function determine_node_vm_provider() {
 
   echo -n "${FOUND_PROVIDERS[*]}"
 
-  if [ ${#FOUND_PROVIDERS[@]} -gt 1 ]; then
-    if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_NODE_VM_PROVIDER ]]; then
-      export NODE_VM_PROVIDER="$PREFERRED_NODE_VM_PROVIDER"
-      echo " ... ok! (using preferred: $NODE_VM_PROVIDER)"
-    else
-      export NODE_VM_PROVIDER="${FOUND_PROVIDERS[-1]}"
-      echo " ... ok! (using: $NODE_VM_PROVIDER)"
-    fi
+  if [[ "${FOUND_PROVIDERS[*]}" =~ $PREFERRED_NODE_VM_PROVIDER ]]; then
+    export NODE_VM_PROVIDER="$PREFERRED_NODE_VM_PROVIDER"
+    echo " ... ok! (using preferred: $NODE_VM_PROVIDER)"
   else
     export NODE_VM_PROVIDER="${FOUND_PROVIDERS[0]}"
-    echo " ... ok! (using: $NODE_VM_PROVIDER)"
+    echo " ... ok! (missing preferred: $PREFERRED_NODE_VM_PROVIDER, using: $NODE_VM_PROVIDER)"
   fi
 }
 
@@ -526,21 +511,36 @@ function main() {
   # default values
   export APP_DIRECTORY="$PWD"
   export DATABASE_COMPOSE_SERVICE_NAME="postgres16"
+  export PREFERRED_CONTAINER_PROVIDER="podman"
+  export PREFERRED_RUBY_VM_PROVIDER="rbenv"
+  export PREFERRED_NODE_VM_PROVIDER="nodenv"
 
-  while getopts 'hC:S:' flag; do
+  while getopts 'hC:s:c:r:n:' flag; do
     case "${flag}" in
       C)
         export APP_DIRECTORY="${OPTARG}"
       ;;
-      S)
+      s)
         export DATABASE_COMPOSE_SERVICE_NAME="${OPTARG}"
+      ;;
+      c)
+        export PREFERRED_CONTAINER_PROVIDER="${OPTARG}"
+      ;;
+      r)
+        export PREFERRED_RUBY_VM_PROVIDER="${OPTARG}"
+      ;;
+      n)
+        export PREFERRED_NODE_VM_PROVIDER="${OPTARG}"
       ;;
       h)
         echo "Usage: $0 [-h] [-C <app_directory>]"
         echo "Options: "
         echo " -h: Show help"
         echo " -C <app_directory>: Path to root application directory (default: current directory)"
-        echo " -S <service_name>: Name of the database compose service (default: postgres16)"
+        echo " -c <container_provider>: Preferred container provider (default: podman)"
+        echo " -r <ruby_vm_provider>: Preferred Ruby VM provider (default: rbenv)"
+        echo " -n <node_vm_provider>: Preferred Node VM provider (default: nodenv)"
+        echo " -s <service_name>: Name of the database compose service (default: postgres16)"
         exit 0
       ;;
       *)
