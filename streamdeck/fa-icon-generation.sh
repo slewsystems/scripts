@@ -8,14 +8,19 @@ set -e
 # Description: Generates PNG icons from FA. Intended to be used for Stream Deck (or its clones) when adding
 # new buttons to your device. This script will download the FA icons and convert them with additional padding.
 #
-# Usage: fa-icon-generation.sh [options] [label]
+# Usage: fa-icon-generation.sh [options] <icon-name>
 # Options:
 #  --style:     Style of the icon (solid or regular)
-#  --icon:      Name of the icon (e.g., "coffee", "camera", etc.)
 #  --output:    Output directory (e.g., "output")
 #  --size:      Size of the icon in pixels
 #  --padding:   Padding around the icon in pixels
 #  --color:       Primary color (default: black)
+#  --label-color: Label color (default: white)
+#  --label-top:    Label text to display at the top of the icon
+#  --label-bottom: Label text to display at the bottom of the icon
+#  --label-size:   Font size for labels (default: 15)
+#  --label-font:    Font for labels (default: /System/Library/Fonts/SFNS.ttf)
+#  --label-padding: Padding for labels from edge (default: 2)
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -96,6 +101,12 @@ function create_png_icon {
   local PNG_SAVE_PATH="$2"
   local SIZE="$3"
   local PADDING="$4"
+  local LABEL_TOP="$5"
+  local LABEL_BOTTOM="$6"
+  local LABEL_COLOR="$7"
+  local LABEL_SIZE="$8"
+  local LABEL_FONT="$9"
+  local LABEL_PADDING="${10}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -103,9 +114,18 @@ function create_png_icon {
   local INNER_WIDTH=$(( WIDTH - PADDING * 2 ))
   local INNER_HEIGHT=$(( HEIGHT - PADDING * 2 ))
 
+  local LABEL_ARGS=()
+  local FONT_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_COLOR" -pointsize "$LABEL_SIZE")
+  if [[ -n "$LABEL_TOP" ]]; then
+    LABEL_ARGS+=(-gravity north "${FONT_ARGS[@]}" -annotate +0+"$LABEL_PADDING" "$LABEL_TOP")
+  fi
+  if [[ -n "$LABEL_BOTTOM" ]]; then
+    LABEL_ARGS+=(-gravity south "${FONT_ARGS[@]}" -annotate +0+"$LABEL_PADDING" "$LABEL_BOTTOM")
+  fi
+
   echo_info "Generating ${SIZE} PNG icon (padding: ${PADDING}px) from $SVG_PATH..."
   mkdir -p "$(dirname "$PNG_SAVE_PATH")"
-  if magick -background none "$SVG_PATH" -resize "${INNER_WIDTH}x${INNER_HEIGHT}" -gravity center -extent "$SIZE" "$PNG_SAVE_PATH" ; then
+  if magick -background none "$SVG_PATH" -resize "${INNER_WIDTH}x${INNER_HEIGHT}" -gravity center -extent "$SIZE" "${LABEL_ARGS[@]}" "$PNG_SAVE_PATH" ; then
     echo_success "Generated PNG icon at $PNG_SAVE_PATH"
   else
     echo_error "Failed to generate PNG icon from $SVG_PATH"
@@ -115,27 +135,41 @@ function create_png_icon {
 
 function main() {
   # default values
-  export ICON_NAME="camera"
+  export ICON_NAME=""
   export OUTPUT_PATH="output"
   export ICON_SIZE="128x128"
   export STYLE="solid"
   export PADDING="30"
   export PRIMARY_COLOR="#006c7a"
   export LABEL_COLOR="white"
-  export LABEL_TEXT=""
+  export LABEL_TOP=""
+  export LABEL_BOTTOM=""
+  export LABEL_SIZE="15"
+  export LABEL_FONT="/System/Library/Fonts/SFNS.ttf"
+  export LABEL_PADDING="2"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --style) STYLE="$2"; shift 2 ;;
-      --icon) ICON_NAME="$2"; shift 2 ;;
       --size) ICON_SIZE="$2"; shift 2 ;;
       --output) OUTPUT_PATH="$2"; shift 2 ;;
       --padding) PADDING="$2"; shift 2 ;;
       --color) PRIMARY_COLOR="$2"; shift 2 ;;
+      --label-color) LABEL_COLOR="$2"; shift 2 ;;
+      --label-top) LABEL_TOP="$2"; shift 2 ;;
+      --label-bottom) LABEL_BOTTOM="$2"; shift 2 ;;
+      --label-size) LABEL_SIZE="$2"; shift 2 ;;
+      --label-font) LABEL_FONT="$2"; shift 2 ;;
+      --label-padding) LABEL_PADDING="$2"; shift 2 ;;
       --*) echo_error "Unknown option: $1" && exit 1 ;;
-      *) echo_error "Unexpected argument: $1" && exit 1 ;;
+      *) ICON_NAME="$1"; shift ;;
     esac
   done
+
+  if [[ -z "$ICON_NAME" ]]; then
+    echo_error "Icon name is required."
+    exit 1
+  fi
 
   check_dependencies || exit 1
 
@@ -146,8 +180,19 @@ function main() {
   SVG_SPRITE_PATH="$OUTPUT_PATH/svg/${STYLE}/symbols/${ICON_NAME}.svg"
   create_svg_icon "$PRIMARY_COLOR" "$SVG_SPRITE_PATH"
 
-  OUTPUT_FILE="$OUTPUT_PATH/${STYLE}/${ICON_NAME}.png"
-  create_png_icon "$SVG_SPRITE_PATH" "$OUTPUT_FILE" "$ICON_SIZE" "$PADDING"
+  OUTPUT_FILE_NAME="$ICON_NAME"
+  [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_TOP}"
+  [[ -n "$LABEL_BOTTOM" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_BOTTOM}"
+  OUTPUT_FILE_NAME=$(echo "$OUTPUT_FILE_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+  OUTPUT_FILE="$OUTPUT_PATH/${STYLE}/${OUTPUT_FILE_NAME}.png"
+  create_png_icon \
+    "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
+    "$ICON_SIZE" "$PADDING" \
+    "$LABEL_TOP" "$LABEL_BOTTOM" "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING"
+
+  rm "$SVG_SPRITE_PATH"
+  rmdir "$(dirname "$SVG_SPRITE_PATH")"
 }
 
 main "$@"
