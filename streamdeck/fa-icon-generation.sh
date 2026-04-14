@@ -50,7 +50,7 @@ function download_sprite_sheet {
     *) echo_error "Invalid style: $STYLE. Use 'solid' or 'regular'." && exit 1 ;;
   esac
 
-  echo_info "Downloading ${STYLE} sprite sheet..."
+  echo -n "Downloading ${STYLE} sprite sheet... "
   if [[ ! -f "$SVG_SAVE_PATH" ]]; then
     mkdir -p "$(dirname "$SVG_SAVE_PATH")"
     curl -s -L -o "$SVG_SAVE_PATH" "$SVG_URL"
@@ -64,6 +64,7 @@ function extract_sprite_symbol {
   local SPRITE_SHEET_SVG_PATH="$1"
   SYMBOL_ID="$2"
 
+  echo -n "Extracting symbol '$SYMBOL_ID' from sprite sheet... "
   # Extract the full <symbol>...</symbol> block once
   SYMBOL_BLOCK=$(sed -n "/<symbol id=\"${SYMBOL_ID}\"/,/<\/symbol>/p" "$SPRITE_SHEET_SVG_PATH")
 
@@ -76,14 +77,14 @@ function extract_sprite_symbol {
   SYMBOL_VIEWBOX=$(echo "$SYMBOL_BLOCK" | sed -n "s/.*viewBox=\"\([^\"]*\)\".*/\1/p")
   SYMBOL_PATHS=$(echo "$SYMBOL_BLOCK" | sed '/<symbol/d; /<\/symbol>/d')
 
-  echo_success "Extracted symbol '$SYMBOL_ID' (viewBox: $SYMBOL_VIEWBOX)"
+  echo_success "Done!"
 }
 
 function create_svg_icon {
   local FILL_COLOR="$1"
   local SVG_SAVE_PATH="$2"
 
-  echo_info "Generating icon SVG..."
+  echo -n "Generating icon SVG... "
   mkdir -p "$(dirname "$SVG_SAVE_PATH")"
 
   # Build a standalone SVG, replacing currentColor with the fill color
@@ -93,7 +94,7 @@ function create_svg_icon {
     echo "</svg>"
   } > "$SVG_SAVE_PATH"
 
-  echo_success "Generated SVG icon at $SVG_SAVE_PATH"
+  echo_success "Done!"
 }
 
 function create_png_icon {
@@ -123,12 +124,12 @@ function create_png_icon {
     LABEL_ARGS+=(-gravity south "${FONT_ARGS[@]}" -annotate +0+"$LABEL_PADDING" "$LABEL_BOTTOM")
   fi
 
-  echo_info "Generating ${SIZE} PNG icon (padding: ${PADDING}px) from $SVG_PATH..."
+  echo -n "Generating ${SIZE} PNG icon... "
   mkdir -p "$(dirname "$PNG_SAVE_PATH")"
   if magick -background none "$SVG_PATH" -resize "${INNER_WIDTH}x${INNER_HEIGHT}" -gravity center -extent "$SIZE" "${LABEL_ARGS[@]}" "$PNG_SAVE_PATH" ; then
-    echo_success "Generated PNG icon at $PNG_SAVE_PATH"
+    echo_success "Done! $PNG_SAVE_PATH"
   else
-    echo_error "Failed to generate PNG icon from $SVG_PATH"
+    echo_error "Failed to generate PNG icon"
     exit 1
   fi
 }
