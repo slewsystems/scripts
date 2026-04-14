@@ -24,6 +24,7 @@ set -e
 #  --label-font:    Font for labels (default: /System/Library/Fonts/SFNS.ttf)
 #  --label-padding:      Padding for labels from edge (default: 2)
 #  --label-stroke-color: Stroke color for label text (default: black)
+#  --label-stroke-width: Stroke width for label text glow (default: 2)
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -114,6 +115,7 @@ function create_png_icon {
   local LABEL_PADDING="${11}"
   local LABEL_STROKE_COLOR="${12}"
   local BACKGROUND_COLOR="${13}"
+  local LABEL_STROKE_WIDTH="${14}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -121,20 +123,35 @@ function create_png_icon {
   local INNER_WIDTH=$(( WIDTH - PADDING * 2 ))
   local INNER_HEIGHT=$(( HEIGHT - PADDING * 2 ))
 
+  # Build glow + fill label args
+  # Glow: draw text on a transparent layer, blur it, composite onto the image
+  # Fill: draw crisp text on top
   local LABEL_ARGS=()
-  local STROKE_ARGS=(-font "$LABEL_FONT" -fill none -stroke "$LABEL_STROKE_COLOR" -strokewidth 1 -pointsize "$LABEL_SIZE")
+  local GLOW_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_STROKE_COLOR" -stroke "$LABEL_STROKE_COLOR" -strokewidth "$LABEL_STROKE_WIDTH" -pointsize "$LABEL_SIZE")
   local FILL_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_COLOR" -stroke none -pointsize "$LABEL_SIZE")
+
+  local GLOW_ANNOTATIONS=()
+  local FILL_ANNOTATIONS=()
   if [[ -n "$LABEL_TOP" ]]; then
-    LABEL_ARGS+=(-gravity north "${STROKE_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
-    LABEL_ARGS+=(-gravity north "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
+    GLOW_ANNOTATIONS+=(-gravity north "${GLOW_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
+    FILL_ANNOTATIONS+=(-gravity north "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
   fi
   if [[ -n "$LABEL_CENTER" ]]; then
-    LABEL_ARGS+=(-gravity center "${STROKE_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
-    LABEL_ARGS+=(-gravity center "${FILL_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
+    GLOW_ANNOTATIONS+=(-gravity center "${GLOW_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
+    FILL_ANNOTATIONS+=(-gravity center "${FILL_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
   fi
   if [[ -n "$LABEL_BOTTOM" ]]; then
-    LABEL_ARGS+=(-gravity south "${STROKE_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
-    LABEL_ARGS+=(-gravity south "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+    GLOW_ANNOTATIONS+=(-gravity south "${GLOW_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+    FILL_ANNOTATIONS+=(-gravity south "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+  fi
+
+  if [[ ${#GLOW_ANNOTATIONS[@]} -gt 0 ]]; then
+    # Create a blank transparent canvas for glow text, blur it, composite under crisp fill text
+    LABEL_ARGS+=(
+      \( -size "$SIZE" xc:none "${GLOW_ANNOTATIONS[@]}" -blur "0x$LABEL_STROKE_WIDTH" \)
+      -composite
+      "${FILL_ANNOTATIONS[@]}"
+    )
   fi
 
   echo -n "Generating ${SIZE} PNG icon... "
@@ -163,6 +180,7 @@ function main() {
   export LABEL_FONT="/System/Library/Fonts/SFNS.ttf"
   export LABEL_PADDING="2"
   export LABEL_STROKE_COLOR="black"
+  export LABEL_STROKE_WIDTH="2"
   export BACKGROUND_COLOR="none"
 
   while [[ $# -gt 0 ]]; do
@@ -180,6 +198,7 @@ function main() {
       --label-font) LABEL_FONT="$2"; shift 2 ;;
       --label-padding) LABEL_PADDING="$2"; shift 2 ;;
       --label-stroke-color) LABEL_STROKE_COLOR="$2"; shift 2 ;;
+      --label-stroke-width) LABEL_STROKE_WIDTH="$2"; shift 2 ;;
       --background-color) BACKGROUND_COLOR="$2"; shift 2 ;;
       --*) echo_error "Unknown option: $1" && exit 1 ;;
       *) ICON_NAME="$1"; shift ;;
@@ -211,7 +230,7 @@ function main() {
     "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
     "$ICON_SIZE" "$PADDING" \
     "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" \
-    "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR"
+    "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR" "$LABEL_STROKE_WIDTH"
 
   rm "$SVG_SPRITE_PATH"
   rmdir "$(dirname "$SVG_SPRITE_PATH")"
