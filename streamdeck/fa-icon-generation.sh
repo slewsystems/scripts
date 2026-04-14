@@ -17,6 +17,7 @@ set -e
 #  --color:       Primary color (default: black)
 #  --label-color: Label color (default: white)
 #  --label-top:    Label text to display at the top of the icon
+#  --label-center: Label text to display at the center of the icon
 #  --label-bottom: Label text to display at the bottom of the icon
 #  --label-size:   Font size for labels (default: 15)
 #  --label-font:    Font for labels (default: /System/Library/Fonts/SFNS.ttf)
@@ -103,11 +104,12 @@ function create_png_icon {
   local SIZE="$3"
   local PADDING="$4"
   local LABEL_TOP="$5"
-  local LABEL_BOTTOM="$6"
-  local LABEL_COLOR="$7"
-  local LABEL_SIZE="$8"
-  local LABEL_FONT="$9"
-  local LABEL_PADDING="${10}"
+  local LABEL_CENTER="$6"
+  local LABEL_BOTTOM="$7"
+  local LABEL_COLOR="$8"
+  local LABEL_SIZE="$9"
+  local LABEL_FONT="${10}"
+  local LABEL_PADDING="${11}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -118,10 +120,13 @@ function create_png_icon {
   local LABEL_ARGS=()
   local FONT_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_COLOR" -pointsize "$LABEL_SIZE")
   if [[ -n "$LABEL_TOP" ]]; then
-    LABEL_ARGS+=(-gravity north "${FONT_ARGS[@]}" -annotate +0+"$LABEL_PADDING" "$LABEL_TOP")
+    LABEL_ARGS+=(-gravity north "${FONT_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
+  fi
+  if [[ -n "$LABEL_CENTER" ]]; then
+    LABEL_ARGS+=(-gravity center "${FONT_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
   fi
   if [[ -n "$LABEL_BOTTOM" ]]; then
-    LABEL_ARGS+=(-gravity south "${FONT_ARGS[@]}" -annotate +0+"$LABEL_PADDING" "$LABEL_BOTTOM")
+    LABEL_ARGS+=(-gravity south "${FONT_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
   fi
 
   echo -n "Generating ${SIZE} PNG icon... "
@@ -144,6 +149,7 @@ function main() {
   export PRIMARY_COLOR="#006c7a"
   export LABEL_COLOR="white"
   export LABEL_TOP=""
+  export LABEL_CENTER=""
   export LABEL_BOTTOM=""
   export LABEL_SIZE="15"
   export LABEL_FONT="/System/Library/Fonts/SFNS.ttf"
@@ -158,6 +164,7 @@ function main() {
       --color) PRIMARY_COLOR="$2"; shift 2 ;;
       --label-color) LABEL_COLOR="$2"; shift 2 ;;
       --label-top) LABEL_TOP="$2"; shift 2 ;;
+      --label-center) LABEL_CENTER="$2"; shift 2 ;;
       --label-bottom) LABEL_BOTTOM="$2"; shift 2 ;;
       --label-size) LABEL_SIZE="$2"; shift 2 ;;
       --label-font) LABEL_FONT="$2"; shift 2 ;;
@@ -183,6 +190,7 @@ function main() {
 
   OUTPUT_FILE_NAME="$ICON_NAME"
   [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_TOP}"
+  [[ -n "$LABEL_CENTER" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_CENTER}"
   [[ -n "$LABEL_BOTTOM" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_BOTTOM}"
   OUTPUT_FILE_NAME=$(echo "$OUTPUT_FILE_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
@@ -190,7 +198,7 @@ function main() {
   create_png_icon \
     "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
     "$ICON_SIZE" "$PADDING" \
-    "$LABEL_TOP" "$LABEL_BOTTOM" "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING"
+    "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING"
 
   rm "$SVG_SPRITE_PATH"
   rmdir "$(dirname "$SVG_SPRITE_PATH")"
