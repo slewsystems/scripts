@@ -21,7 +21,8 @@ set -e
 #  --label-bottom: Label text to display at the bottom of the icon
 #  --label-size:   Font size for labels (default: 15)
 #  --label-font:    Font for labels (default: /System/Library/Fonts/SFNS.ttf)
-#  --label-padding: Padding for labels from edge (default: 2)
+#  --label-padding:      Padding for labels from edge (default: 2)
+#  --label-stroke-color: Stroke color for label text (default: black)
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -110,6 +111,7 @@ function create_png_icon {
   local LABEL_SIZE="$9"
   local LABEL_FONT="${10}"
   local LABEL_PADDING="${11}"
+  local LABEL_STROKE_COLOR="${12}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -118,15 +120,19 @@ function create_png_icon {
   local INNER_HEIGHT=$(( HEIGHT - PADDING * 2 ))
 
   local LABEL_ARGS=()
-  local FONT_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_COLOR" -pointsize "$LABEL_SIZE")
+  local STROKE_ARGS=(-font "$LABEL_FONT" -fill none -stroke "$LABEL_STROKE_COLOR" -strokewidth 1 -pointsize "$LABEL_SIZE")
+  local FILL_ARGS=(-font "$LABEL_FONT" -fill "$LABEL_COLOR" -stroke none -pointsize "$LABEL_SIZE")
   if [[ -n "$LABEL_TOP" ]]; then
-    LABEL_ARGS+=(-gravity north "${FONT_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
+    LABEL_ARGS+=(-gravity north "${STROKE_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
+    LABEL_ARGS+=(-gravity north "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
   fi
   if [[ -n "$LABEL_CENTER" ]]; then
-    LABEL_ARGS+=(-gravity center "${FONT_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
+    LABEL_ARGS+=(-gravity center "${STROKE_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
+    LABEL_ARGS+=(-gravity center "${FILL_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
   fi
   if [[ -n "$LABEL_BOTTOM" ]]; then
-    LABEL_ARGS+=(-gravity south "${FONT_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+    LABEL_ARGS+=(-gravity south "${STROKE_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+    LABEL_ARGS+=(-gravity south "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
   fi
 
   echo -n "Generating ${SIZE} PNG icon... "
@@ -154,6 +160,7 @@ function main() {
   export LABEL_SIZE="15"
   export LABEL_FONT="/System/Library/Fonts/SFNS.ttf"
   export LABEL_PADDING="2"
+  export LABEL_STROKE_COLOR="black"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -169,6 +176,7 @@ function main() {
       --label-size) LABEL_SIZE="$2"; shift 2 ;;
       --label-font) LABEL_FONT="$2"; shift 2 ;;
       --label-padding) LABEL_PADDING="$2"; shift 2 ;;
+      --label-stroke-color) LABEL_STROKE_COLOR="$2"; shift 2 ;;
       --*) echo_error "Unknown option: $1" && exit 1 ;;
       *) ICON_NAME="$1"; shift ;;
     esac
@@ -198,7 +206,8 @@ function main() {
   create_png_icon \
     "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
     "$ICON_SIZE" "$PADDING" \
-    "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING"
+    "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" \
+    "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR"
 
   rm "$SVG_SPRITE_PATH"
   rmdir "$(dirname "$SVG_SPRITE_PATH")"
