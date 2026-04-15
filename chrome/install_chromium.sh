@@ -194,9 +194,9 @@ function main {
         *) echo_error "Invalid command: $COMMAND. Use 'install' or 'search'." && exit 1 ;;
       esac
     ;;
-    cef)
+    chromium-cef)
       if [[ "$PLATFORM" == "mac-arm64" ]]; then
-        echo_soft_warn "Automatically converting platform for CEF. 'mac-arm64' should be specified as 'macosarm64'."
+        # automatically converting platform for CEF. 'mac-arm64' should be specified as 'macosarm64'
         PLATFORM="macosarm64"
       fi
       case "$COMMAND" in
@@ -205,7 +205,7 @@ function main {
         *) echo_error "Invalid command: $COMMAND. Use 'install' or 'search'." && exit 1 ;;
       esac
     ;;
-    *) echo_error "Invalid app: $APP. Use 'chromium' or 'cef'." && exit 1 ;;
+    *) echo_error "Invalid app: $APP. Use 'chromium' or 'chromium-cef'." && exit 1 ;;
   esac
 }
 
