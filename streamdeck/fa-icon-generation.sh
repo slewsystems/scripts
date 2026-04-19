@@ -10,7 +10,7 @@ set -e
 #
 # Usage: fa-icon-generation.sh [options] <icon-name>
 # Options:
-#  --style:     Style of the icon (solid or regular)
+#  --icon-set:  Icon set to use (fa-solid, fa-regular, or feather)
 #  --output:    Output directory (e.g., "output")
 #  --size:      Size of the icon in pixels
 #  --padding:   Padding around the icon in pixels
@@ -45,22 +45,23 @@ function check_dependencies {
 }
 
 function download_sprite_sheet {
-  local STYLE="$1"
+  local ICON_SET="$1"
   local SVG_SAVE_PATH="$2"
 
-  case "$STYLE" in
-    solid) SVG_URL="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/refs/heads/7.x/sprites/solid.svg" ;;
-    regular) SVG_URL="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/refs/heads/7.x/sprites/regular.svg" ;;
-    *) echo_error "Invalid style: $STYLE. Use 'solid' or 'regular'." && exit 1 ;;
+  case "$ICON_SET" in
+    fa-solid) SVG_URL="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/refs/heads/7.x/sprites/solid.svg" ;;
+    fa-regular) SVG_URL="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/refs/heads/7.x/sprites/regular.svg" ;;
+    feather) SVG_URL="https://unpkg.com/feather-icons/dist/feather-sprite.svg" ;;
+    *) echo_error "Invalid icon set: $ICON_SET. Use 'fa-solid', 'fa-regular', or 'feather'." && exit 1 ;;
   esac
 
-  echo -n "Downloading ${STYLE} sprite sheet... "
+  echo -n "Downloading ${ICON_SET} sprite sheet... "
   if [[ ! -f "$SVG_SAVE_PATH" ]]; then
     mkdir -p "$(dirname "$SVG_SAVE_PATH")"
     curl -s -L -o "$SVG_SAVE_PATH" "$SVG_URL"
-    echo_success "Downloaded ${STYLE} sprite sheet to $SVG_SAVE_PATH"
+    echo_success "Downloaded ${ICON_SET} sprite sheet to $SVG_SAVE_PATH"
   else
-    echo_soft_warn "Sprite sheet for ${STYLE} already exists. Skipping download."
+    echo_soft_warn "Sprite sheet for ${ICON_SET} already exists. Skipping download."
   fi
 }
 
@@ -69,8 +70,10 @@ function extract_sprite_symbol {
   SYMBOL_ID="$2"
 
   echo -n "Extracting symbol '$SYMBOL_ID' from sprite sheet... "
-  # Extract the full <symbol>...</symbol> block once
-  SYMBOL_BLOCK=$(sed -n "/<symbol id=\"${SYMBOL_ID}\"/,/<\/symbol>/p" "$SPRITE_SHEET_SVG_PATH")
+  # Normalize so each <symbol>...</symbol> is on its own line, then extract the target block
+  # this will handled both minified and non minified files
+  NORMALIZED=$(sed $'s/<symbol/\\\n<symbol/g; s/<\\/symbol>/<\\/symbol>\\\n/g' "$SPRITE_SHEET_SVG_PATH")
+  SYMBOL_BLOCK=$(echo "$NORMALIZED" | sed -n "/<symbol id=\"${SYMBOL_ID}\"/,/<\/symbol>/p")
 
   if [[ -z "$SYMBOL_BLOCK" ]]; then
     echo_error "Symbol '$SYMBOL_ID' not found in sprite sheet"
@@ -78,8 +81,8 @@ function extract_sprite_symbol {
   fi
 
   # Derive viewBox and inner paths from the extracted symbol
-  SYMBOL_VIEWBOX=$(echo "$SYMBOL_BLOCK" | sed -n "s/.*viewBox=\"\([^\"]*\)\".*/\1/p")
-  SYMBOL_PATHS=$(echo "$SYMBOL_BLOCK" | sed '/<symbol/d; /<\/symbol>/d')
+  SYMBOL_VIEWBOX=$(echo "$SYMBOL_BLOCK" | grep -oE 'viewBox="[^"]*"' | head -1 | sed 's/viewBox="//;s/"//')
+  SYMBOL_PATHS=$(echo "$SYMBOL_BLOCK" | sed 's/<symbol[^>]*>//;s/<\/symbol>//')
 
   echo_success "Done!"
 }
@@ -91,10 +94,13 @@ function create_svg_icon {
   echo -n "Generating icon SVG... "
   mkdir -p "$(dirname "$SVG_SAVE_PATH")"
 
-  # Build a standalone SVG, replacing currentColor with the fill color
+  # Build a standalone SVG, setting fill color via a wrapping <g> for paths
+  # that lack an explicit fill, and replacing any currentColor references
   {
     echo "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"$SYMBOL_VIEWBOX\">"
+    echo "<g fill=\"$FILL_COLOR\">"
     echo "$SYMBOL_PATHS" | sed "s/currentColor/$FILL_COLOR/g"
+    echo "</g>"
     echo "</svg>"
   } > "$SVG_SAVE_PATH"
 
@@ -169,7 +175,7 @@ function main() {
   export ICON_NAME=""
   export OUTPUT_PATH="output"
   export ICON_SIZE="128x128"
-  export STYLE="solid"
+  export ICON_SET="fa-solid"
   export PADDING="30"
   export PRIMARY_COLOR="#006c7a"
   export LABEL_COLOR="white"
@@ -185,7 +191,7 @@ function main() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --style) STYLE="$2"; shift 2 ;;
+      --icon-set) ICON_SET="$2"; shift 2 ;;
       --size) ICON_SIZE="$2"; shift 2 ;;
       --output) OUTPUT_PATH="$2"; shift 2 ;;
       --padding) PADDING="$2"; shift 2 ;;
@@ -212,11 +218,11 @@ function main() {
 
   check_dependencies || exit 1
 
-  SVG_SPRITE_SHEET_PATH="$OUTPUT_PATH/svg/${STYLE}/sprite-sheet.svg"
-  download_sprite_sheet "$STYLE" "$SVG_SPRITE_SHEET_PATH"
+  SVG_SPRITE_SHEET_PATH="$OUTPUT_PATH/svg/${ICON_SET}/sprite-sheet.svg"
+  download_sprite_sheet "$ICON_SET" "$SVG_SPRITE_SHEET_PATH"
 
   extract_sprite_symbol "$SVG_SPRITE_SHEET_PATH" "$ICON_NAME" || exit 1
-  SVG_SPRITE_PATH="$OUTPUT_PATH/svg/${STYLE}/symbols/${ICON_NAME}.svg"
+  SVG_SPRITE_PATH="$OUTPUT_PATH/svg/${ICON_SET}/symbols/${ICON_NAME}.svg"
   create_svg_icon "$PRIMARY_COLOR" "$SVG_SPRITE_PATH"
 
   OUTPUT_FILE_NAME="$ICON_NAME"
@@ -225,7 +231,7 @@ function main() {
   [[ -n "$LABEL_BOTTOM" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_BOTTOM}"
   OUTPUT_FILE_NAME=$(echo "$OUTPUT_FILE_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
-  OUTPUT_FILE="$OUTPUT_PATH/${STYLE}/${OUTPUT_FILE_NAME}.png"
+  OUTPUT_FILE="$OUTPUT_PATH/${ICON_SET}/${OUTPUT_FILE_NAME}.png"
   create_png_icon \
     "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
     "$ICON_SIZE" "$PADDING" \
