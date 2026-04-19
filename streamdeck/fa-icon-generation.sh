@@ -14,7 +14,9 @@ set -e
 #  --output:    Output directory (e.g., "output")
 #  --size:      Size of the icon in pixels
 #  --padding:   Padding around the icon in pixels
-#  --color:            Primary color (default: black)
+#  --fill-color:       Fill color for the icon (default: #006c7a)
+#  --stroke-color:     Stroke color for the icon (default: same as fill color)
+#  --stroke-width:     Stroke width for the icon (default: 0)
 #  --background-color: Background color (default: transparent)
 #  --label-color: Label color (default: white)
 #  --label-top:    Label text to display at the top of the icon
@@ -89,16 +91,18 @@ function extract_sprite_symbol {
 
 function create_svg_icon {
   local FILL_COLOR="$1"
-  local SVG_SAVE_PATH="$2"
+  local STROKE_COLOR="$2"
+  local STROKE_WIDTH="$3"
+  local SVG_SAVE_PATH="$4"
 
   echo -n "Generating icon SVG... "
   mkdir -p "$(dirname "$SVG_SAVE_PATH")"
 
-  # Build a standalone SVG, setting fill color via a wrapping <g> for paths
-  # that lack an explicit fill, and replacing any currentColor references
+  # Build a standalone SVG, setting fill/stroke via a wrapping <g> for paths
+  # that lack explicit attributes, and replacing any currentColor references
   {
     echo "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"$SYMBOL_VIEWBOX\">"
-    echo "<g fill=\"$FILL_COLOR\">"
+    echo "<g fill=\"$FILL_COLOR\" stroke=\"$STROKE_COLOR\" stroke-width=\"$STROKE_WIDTH\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
     echo "$SYMBOL_PATHS" | sed "s/currentColor/$FILL_COLOR/g"
     echo "</g>"
     echo "</svg>"
@@ -177,7 +181,9 @@ function main() {
   export ICON_SIZE="128x128"
   export ICON_SET="fa-solid"
   export PADDING="30"
-  export PRIMARY_COLOR="#006c7a"
+  export FILL_COLOR="#006c7a"
+  export STROKE_COLOR=""
+  export STROKE_WIDTH="0"
   export LABEL_COLOR="white"
   export LABEL_TOP=""
   export LABEL_CENTER=""
@@ -195,7 +201,9 @@ function main() {
       --size) ICON_SIZE="$2"; shift 2 ;;
       --output) OUTPUT_PATH="$2"; shift 2 ;;
       --padding) PADDING="$2"; shift 2 ;;
-      --color) PRIMARY_COLOR="$2"; shift 2 ;;
+      --fill-color) FILL_COLOR="$2"; shift 2 ;;
+      --stroke-color) STROKE_COLOR="$2"; shift 2 ;;
+      --stroke-width) STROKE_WIDTH="$2"; shift 2 ;;
       --label-color) LABEL_COLOR="$2"; shift 2 ;;
       --label-top) LABEL_TOP="$2"; shift 2 ;;
       --label-center) LABEL_CENTER="$2"; shift 2 ;;
@@ -223,7 +231,10 @@ function main() {
 
   extract_sprite_symbol "$SVG_SPRITE_SHEET_PATH" "$ICON_NAME" || exit 1
   SVG_SPRITE_PATH="$OUTPUT_PATH/svg/${ICON_SET}/symbols/${ICON_NAME}.svg"
-  create_svg_icon "$PRIMARY_COLOR" "$SVG_SPRITE_PATH"
+  # Default stroke color to fill color if not set
+  [[ -z "$STROKE_COLOR" ]] && STROKE_COLOR="$FILL_COLOR"
+
+  create_svg_icon "$FILL_COLOR" "$STROKE_COLOR" "$STROKE_WIDTH" "$SVG_SPRITE_PATH"
 
   OUTPUT_FILE_NAME="$ICON_NAME"
   [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_TOP}"
@@ -238,8 +249,8 @@ function main() {
     "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" \
     "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR" "$LABEL_STROKE_WIDTH"
 
-  rm "$SVG_SPRITE_PATH"
-  rmdir "$(dirname "$SVG_SPRITE_PATH")"
+  # rm "$SVG_SPRITE_PATH"
+  # rmdir "$(dirname "$SVG_SPRITE_PATH")"
 }
 
 main "$@"
