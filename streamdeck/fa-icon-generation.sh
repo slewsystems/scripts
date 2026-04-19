@@ -72,10 +72,12 @@ function extract_sprite_symbol {
   SYMBOL_ID="$2"
 
   echo -n "Extracting symbol '$SYMBOL_ID' from sprite sheet... "
-  # Normalize so each <symbol>...</symbol> is on its own line, then extract the target block
-  # this will handled both minified and non minified files
+  # Normalize so each <symbol> and </symbol> tag starts on its own line,
+  # then extract the target block. The closing </symbol> sed quits after
+  # the first match to avoid the sed range double-match issue when
+  # start and end patterns appear on the same line.
   NORMALIZED=$(sed $'s/<symbol/\\\n<symbol/g; s/<\\/symbol>/<\\/symbol>\\\n/g' "$SPRITE_SHEET_SVG_PATH")
-  SYMBOL_BLOCK=$(echo "$NORMALIZED" | sed -n "/<symbol id=\"${SYMBOL_ID}\"/,/<\/symbol>/p")
+  SYMBOL_BLOCK=$(echo "$NORMALIZED" | sed -n "/<symbol id=\"${SYMBOL_ID}\"/,/<\/symbol>/{p; /<\/symbol>/q;}")
 
   if [[ -z "$SYMBOL_BLOCK" ]]; then
     echo_error "Symbol '$SYMBOL_ID' not found in sprite sheet"
@@ -83,7 +85,7 @@ function extract_sprite_symbol {
   fi
 
   # Derive viewBox and inner paths from the extracted symbol
-  SYMBOL_VIEWBOX=$(echo "$SYMBOL_BLOCK" | grep -oE 'viewBox="[^"]*"' | head -1 | sed 's/viewBox="//;s/"//')
+  SYMBOL_VIEWBOX=$(echo "$SYMBOL_BLOCK" | sed -n "s/.*viewBox=\"\([^\"]*\)\".*/\1/p")
   SYMBOL_PATHS=$(echo "$SYMBOL_BLOCK" | sed 's/<symbol[^>]*>//;s/<\/symbol>//')
 
   echo_success "Done!"
