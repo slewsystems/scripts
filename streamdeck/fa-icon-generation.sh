@@ -44,6 +44,12 @@ function check_dependencies {
     echo_error "Missing Imagemagick (magick) command! Install and try again."
     exit 1
   fi
+
+  # rsvg-convert is required for proper SVG rendering (stroke, line, rect, etc.)
+  if ! is_command_found rsvg-convert; then
+    echo_error "Missing rsvg-convert command (librsvg). Install with: brew install librsvg"
+    exit 1
+  fi
 }
 
 function download_sprite_sheet {
@@ -91,43 +97,23 @@ function extract_sprite_symbol {
   echo_success "Done!"
 }
 
-function create_svg_icon {
+function create_png_icon {
   local FILL_COLOR="$1"
   local STROKE_COLOR="$2"
   local STROKE_WIDTH="$3"
-  local SVG_SAVE_PATH="$4"
-
-  echo -n "Generating icon SVG... "
-  mkdir -p "$(dirname "$SVG_SAVE_PATH")"
-
-  # Build a standalone SVG, setting fill/stroke via a wrapping <g> for paths
-  # that lack explicit attributes, and replacing any currentColor references
-  {
-    echo "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"$SYMBOL_VIEWBOX\">"
-    echo "<g fill=\"$FILL_COLOR\" stroke=\"$STROKE_COLOR\" stroke-width=\"$STROKE_WIDTH\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
-    echo "$SYMBOL_PATHS" | sed "s/currentColor/$FILL_COLOR/g"
-    echo "</g>"
-    echo "</svg>"
-  } > "$SVG_SAVE_PATH"
-
-  echo_success "Done!"
-}
-
-function create_png_icon {
-  local SVG_PATH="$1"
-  local PNG_SAVE_PATH="$2"
-  local SIZE="$3"
-  local PADDING="$4"
-  local LABEL_TOP="$5"
-  local LABEL_CENTER="$6"
-  local LABEL_BOTTOM="$7"
-  local LABEL_COLOR="$8"
-  local LABEL_SIZE="$9"
-  local LABEL_FONT="${10}"
-  local LABEL_PADDING="${11}"
-  local LABEL_STROKE_COLOR="${12}"
-  local BACKGROUND_COLOR="${13}"
-  local LABEL_STROKE_WIDTH="${14}"
+  local PNG_SAVE_PATH="$4"
+  local SIZE="$5"
+  local PADDING="$6"
+  local LABEL_TOP="$7"
+  local LABEL_CENTER="$8"
+  local LABEL_BOTTOM="$9"
+  local LABEL_COLOR="${10}"
+  local LABEL_SIZE="${11}"
+  local LABEL_FONT="${12}"
+  local LABEL_PADDING="${13}"
+  local LABEL_STROKE_COLOR="${14}"
+  local BACKGROUND_COLOR="${15}"
+  local LABEL_STROKE_WIDTH="${16}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -168,7 +154,17 @@ function create_png_icon {
 
   echo -n "Generating ${SIZE} PNG icon... "
   mkdir -p "$(dirname "$PNG_SAVE_PATH")"
-  if magick -background "$BACKGROUND_COLOR" "$SVG_PATH" -resize "${INNER_WIDTH}x${INNER_HEIGHT}" -gravity center -extent "$SIZE" "${LABEL_ARGS[@]}" "$PNG_SAVE_PATH" ; then
+
+  # Build SVG in memory, rasterize with rsvg-convert, then pipe to ImageMagick for padding/labels
+  local SVG_CONTENT
+  SVG_CONTENT="<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"$SYMBOL_VIEWBOX\">"
+  SVG_CONTENT+="<g fill=\"$FILL_COLOR\" stroke=\"$STROKE_COLOR\" stroke-width=\"$STROKE_WIDTH\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
+  SVG_CONTENT+="$(echo "$SYMBOL_PATHS" | sed "s/currentColor/$FILL_COLOR/g")"
+  SVG_CONTENT+="</g></svg>"
+
+  if echo "$SVG_CONTENT" \
+    | rsvg-convert -w "$INNER_WIDTH" -h "$INNER_HEIGHT" --keep-aspect-ratio -b "$BACKGROUND_COLOR" \
+    | magick png:- -gravity center -background "$BACKGROUND_COLOR" -extent "$SIZE" "${LABEL_ARGS[@]}" "$PNG_SAVE_PATH" ; then
     echo_success "Done! $PNG_SAVE_PATH"
   else
     echo_error "Failed to generate PNG icon"
@@ -232,11 +228,8 @@ function main() {
   download_sprite_sheet "$ICON_SET" "$SVG_SPRITE_SHEET_PATH"
 
   extract_sprite_symbol "$SVG_SPRITE_SHEET_PATH" "$ICON_NAME" || exit 1
-  SVG_SPRITE_PATH="$OUTPUT_PATH/svg/${ICON_SET}/symbols/${ICON_NAME}.svg"
   # Default stroke color to fill color if not set
   [[ -z "$STROKE_COLOR" ]] && STROKE_COLOR="$FILL_COLOR"
-
-  create_svg_icon "$FILL_COLOR" "$STROKE_COLOR" "$STROKE_WIDTH" "$SVG_SPRITE_PATH"
 
   OUTPUT_FILE_NAME="$ICON_NAME"
   [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_TOP}"
@@ -246,13 +239,10 @@ function main() {
 
   OUTPUT_FILE="$OUTPUT_PATH/${ICON_SET}/${OUTPUT_FILE_NAME}.png"
   create_png_icon \
-    "$SVG_SPRITE_PATH" "$OUTPUT_FILE" \
-    "$ICON_SIZE" "$PADDING" \
+    "$FILL_COLOR" "$STROKE_COLOR" "$STROKE_WIDTH" \
+    "$OUTPUT_FILE" "$ICON_SIZE" "$PADDING" \
     "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" \
     "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR" "$LABEL_STROKE_WIDTH"
-
-  # rm "$SVG_SPRITE_PATH"
-  # rmdir "$(dirname "$SVG_SPRITE_PATH")"
 }
 
 main "$@"
