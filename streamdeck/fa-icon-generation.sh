@@ -130,6 +130,9 @@ function create_png_icon {
 
   local GLOW_ANNOTATIONS=()
   local FILL_ANNOTATIONS=()
+  # Compensate for font descender space on south gravity (~33% of point size)
+  local DESCENDER_OFFSET=$(( LABEL_SIZE / 3 ))
+  local BOTTOM_PADDING=$(( LABEL_PADDING - DESCENDER_OFFSET ))
   if [[ -n "$LABEL_TOP" ]]; then
     GLOW_ANNOTATIONS+=(-gravity north "${GLOW_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
     FILL_ANNOTATIONS+=(-gravity north "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_TOP")
@@ -139,8 +142,8 @@ function create_png_icon {
     FILL_ANNOTATIONS+=(-gravity center "${FILL_ARGS[@]}" -annotate "+0+0" "$LABEL_CENTER")
   fi
   if [[ -n "$LABEL_BOTTOM" ]]; then
-    GLOW_ANNOTATIONS+=(-gravity south "${GLOW_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
-    FILL_ANNOTATIONS+=(-gravity south "${FILL_ARGS[@]}" -annotate "+0+$LABEL_PADDING" "$LABEL_BOTTOM")
+    GLOW_ANNOTATIONS+=(-gravity south "${GLOW_ARGS[@]}" -annotate "+0+$BOTTOM_PADDING" "$LABEL_BOTTOM")
+    FILL_ANNOTATIONS+=(-gravity south "${FILL_ARGS[@]}" -annotate "+0+$BOTTOM_PADDING" "$LABEL_BOTTOM")
   fi
 
   if [[ ${#GLOW_ANNOTATIONS[@]} -gt 0 ]]; then
