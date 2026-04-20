@@ -11,7 +11,8 @@ set -e
 # Usage: fa-icon-generation.sh [options] <icon-name>
 # Options:
 #  --icon-set:  Icon set to use (fa-solid, fa-regular, or feather)
-#  --output:    Output directory (e.g., "output")
+#  --output-dir:  Output directory (e.g., "output")
+#  --output-name: Custom output filename (without extension)
 #  --size:      Size of the icon in pixels
 #  --padding:   Padding around the icon in pixels
 #  --fill-color:       Fill color for the icon (default: #006c7a)
@@ -195,12 +196,14 @@ function main() {
   export LABEL_STROKE_COLOR="black"
   export LABEL_STROKE_WIDTH="2"
   export BACKGROUND_COLOR="none"
+  export OUTPUT_NAME=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --icon-set) ICON_SET="$2"; shift 2 ;;
       --size) ICON_SIZE="$2"; shift 2 ;;
-      --output) OUTPUT_PATH="$2"; shift 2 ;;
+      --output-dir) OUTPUT_PATH="$2"; shift 2 ;;
+      --output-name) OUTPUT_NAME="$2"; shift 2 ;;
       --padding) PADDING="$2"; shift 2 ;;
       --fill-color) FILL_COLOR="$2"; shift 2 ;;
       --stroke-color) STROKE_COLOR="$2"; shift 2 ;;
@@ -227,20 +230,32 @@ function main() {
 
   check_dependencies || exit 1
 
-  SVG_SPRITE_SHEET_PATH="$OUTPUT_PATH/svg/${ICON_SET}/sprite-sheet.svg"
+  SVG_SPRITE_SHEET_PATH="$OUTPUT_PATH/svg/${ICON_SET}-sprite-sheet.svg"
   download_sprite_sheet "$ICON_SET" "$SVG_SPRITE_SHEET_PATH"
 
   extract_sprite_symbol "$SVG_SPRITE_SHEET_PATH" "$ICON_NAME" || exit 1
   # Default stroke color to fill color if not set
   [[ -z "$STROKE_COLOR" ]] && STROKE_COLOR="$FILL_COLOR"
 
-  OUTPUT_FILE_NAME="$ICON_NAME"
-  [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_TOP}"
-  [[ -n "$LABEL_CENTER" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_CENTER}"
-  [[ -n "$LABEL_BOTTOM" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}-${LABEL_BOTTOM}"
-  OUTPUT_FILE_NAME=$(echo "$OUTPUT_FILE_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+  if [[ -n "$OUTPUT_NAME" ]]; then
+    OUTPUT_FILE_NAME=$(echo "$OUTPUT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+  else
+    OUTPUT_FILE_NAME=""
+    [[ -n "$LABEL_TOP" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}${OUTPUT_FILE_NAME:+-}${LABEL_TOP}"
+    [[ -n "$LABEL_CENTER" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}${OUTPUT_FILE_NAME:+-}${LABEL_CENTER}"
+    [[ -n "$LABEL_BOTTOM" ]] && OUTPUT_FILE_NAME="${OUTPUT_FILE_NAME}${OUTPUT_FILE_NAME:+-}${LABEL_BOTTOM}"
+    [[ -z "$OUTPUT_FILE_NAME" ]] && OUTPUT_FILE_NAME="$ICON_NAME"
+    OUTPUT_FILE_NAME=$(echo "$OUTPUT_FILE_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+  fi
 
   OUTPUT_FILE="$OUTPUT_PATH/${ICON_SET}/${OUTPUT_FILE_NAME}.png"
+  if [[ -f "$OUTPUT_FILE" ]]; then
+    local i=1
+    while [[ -f "$OUTPUT_PATH/${ICON_SET}/${OUTPUT_FILE_NAME}-${i}.png" ]]; do
+      (( i++ ))
+    done
+    OUTPUT_FILE="$OUTPUT_PATH/${ICON_SET}/${OUTPUT_FILE_NAME}-${i}.png"
+  fi
   create_png_icon \
     "$FILL_COLOR" "$STROKE_COLOR" "$STROKE_WIDTH" \
     "$OUTPUT_FILE" "$ICON_SIZE" "$PADDING" \
