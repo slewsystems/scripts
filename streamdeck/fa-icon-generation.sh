@@ -28,6 +28,7 @@ set -e
 #  --label-padding:      Padding for labels from edge (default: 2)
 #  --label-stroke-color: Stroke color for label text (default: black)
 #  --label-stroke-width: Stroke width for label text glow (default: 2)
+#  --append-svg:         Raw SVG element(s) to inject into the icon (e.g., a path or circle)
 # ---------------------------
 
 function echo_error() { echo -e "\\033[0;31m[ERROR] $*\\033[0m"; }
@@ -115,6 +116,7 @@ function create_png_icon {
   local LABEL_STROKE_COLOR="${14}"
   local BACKGROUND_COLOR="${15}"
   local LABEL_STROKE_WIDTH="${16}"
+  local APPEND_SVG="${17}"
 
   # Calculate inner size by subtracting padding from each side
   local WIDTH="${SIZE%x*}"
@@ -163,8 +165,10 @@ function create_png_icon {
   local SVG_CONTENT
   SVG_CONTENT="<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"$SYMBOL_VIEWBOX\">"
   SVG_CONTENT+="<g fill=\"$FILL_COLOR\" stroke=\"$STROKE_COLOR\" stroke-width=\"$STROKE_WIDTH\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
-  SVG_CONTENT+="$(echo "$SYMBOL_PATHS" | sed "s/currentColor/$FILL_COLOR/g")"
-  SVG_CONTENT+="</g></svg>"
+  SVG_CONTENT+="${SYMBOL_PATHS//currentColor/$FILL_COLOR}"
+  SVG_CONTENT+="</g>"
+  [[ -n "$APPEND_SVG" ]] && SVG_CONTENT+="$APPEND_SVG"
+  SVG_CONTENT+="</svg>"
 
   if echo "$SVG_CONTENT" \
     | rsvg-convert -w "$INNER_WIDTH" -h "$INNER_HEIGHT" --keep-aspect-ratio -b "$BACKGROUND_COLOR" \
@@ -197,6 +201,7 @@ function main() {
   export LABEL_STROKE_WIDTH="2"
   export BACKGROUND_COLOR="none"
   export OUTPUT_NAME=""
+  export APPEND_SVG=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -218,6 +223,7 @@ function main() {
       --label-stroke-color) LABEL_STROKE_COLOR="$2"; shift 2 ;;
       --label-stroke-width) LABEL_STROKE_WIDTH="$2"; shift 2 ;;
       --background-color) BACKGROUND_COLOR="$2"; shift 2 ;;
+      --append-svg) APPEND_SVG="$2"; shift 2 ;;
       --*) echo_error "Unknown option: $1" && exit 1 ;;
       *) ICON_NAME="$1"; shift ;;
     esac
@@ -227,6 +233,8 @@ function main() {
     echo_error "Icon name is required."
     exit 1
   fi
+  # Default stroke color to fill color if not set
+  [[ -z "$STROKE_COLOR" ]] && STROKE_COLOR="$FILL_COLOR"
 
   check_dependencies || exit 1
 
@@ -234,8 +242,6 @@ function main() {
   download_sprite_sheet "$ICON_SET" "$SVG_SPRITE_SHEET_PATH"
 
   extract_sprite_symbol "$SVG_SPRITE_SHEET_PATH" "$ICON_NAME" || exit 1
-  # Default stroke color to fill color if not set
-  [[ -z "$STROKE_COLOR" ]] && STROKE_COLOR="$FILL_COLOR"
 
   if [[ -n "$OUTPUT_NAME" ]]; then
     OUTPUT_FILE_NAME=$(echo "$OUTPUT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
@@ -260,7 +266,8 @@ function main() {
     "$FILL_COLOR" "$STROKE_COLOR" "$STROKE_WIDTH" \
     "$OUTPUT_FILE" "$ICON_SIZE" "$PADDING" \
     "$LABEL_TOP" "$LABEL_CENTER" "$LABEL_BOTTOM" \
-    "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR" "$LABEL_STROKE_WIDTH"
+    "$LABEL_COLOR" "$LABEL_SIZE" "$LABEL_FONT" "$LABEL_PADDING" "$LABEL_STROKE_COLOR" "$BACKGROUND_COLOR" "$LABEL_STROKE_WIDTH" \
+    "$APPEND_SVG"
 }
 
 main "$@"
